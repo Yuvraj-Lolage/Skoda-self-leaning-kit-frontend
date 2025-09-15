@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Sidebar from "../ui/navigation_bar/sidebar";
 import Training_info from "../tranining/training_info";
 import Dashboard from "../dashboard/dashboard";
+import DashboardHeader from "../ui/dashboard_header/dashboard_header";
 
 const Render_layout: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -34,17 +35,13 @@ const Render_layout: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-3xl text-black font-semibold capitalize">
-              {activeTab}
-            </h2>
-
-            <div className="flex items-center gap-3">
-              {/* Avatar / profile actions */}
-            </div>
-          </div>
-        </header>
+        <DashboardHeader 
+  activeTab={activeTab} 
+  onLogout={() => {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  }} 
+/>
 
         {/* Page Content */}
         <main className="flex-1 p-4">{renderContent()}</main>

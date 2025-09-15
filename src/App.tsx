@@ -3,9 +3,7 @@ import './App.css'
 import { Toaster } from "react-hot-toast";
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoginPage } from './components/login/login';
-import Dashboard from './components/render_layout/render_layout';
 import Training_info from './components/tranining/training_info';
-import Sidebar from './components/ui/navigation_bar/sidebar';
 import Render_layout from './components/render_layout/render_layout';
 
 function App() {
