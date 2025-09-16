@@ -13,11 +13,11 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   const navigationItems = [
-    { icon: LayoutDashboard, label: "dashboard" },
-    { icon: BookOpen, label: "training" }, // ✅ updated from courses → training
-    { icon: MessageCircle, label: "chats" },
-    { icon: GraduationCap, label: "grades" },
-    { icon: Settings, label: "settings" },
+    { icon: LayoutDashboard, label: "dashboard", id:"sidebar-dashboard" },
+    { icon: BookOpen, label: "training" ,id:"sidebar-modules"}, // ✅ updated from courses → training
+    { icon: MessageCircle, label: "chats",id:"sidebar-profile" },
+    { icon: GraduationCap, label: "grades",id:"sidebar-grades" },
+    { icon: Settings, label: "settings" ,id:"sidebar-settings"},
   ];
 
   return (
@@ -35,7 +35,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
             const active = activeTab === item.label;
 
             return (
-              <li key={item.label}>
+              <li key={item.label} id={item.id}>
                 <button
                   onClick={() => setActiveTab(item.label)}
                   className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors duration-200 ${

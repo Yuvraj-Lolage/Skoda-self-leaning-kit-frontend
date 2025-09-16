@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+/* Footer buttons - primary */
+.custom-popover .driver-popover-footer button {
+  background: #1d4ed8; /* primary blue */
+  color: white;        /* white text */
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.custom-popover .driver-popover-footer button:hover {
+  background: #1e40af; /* darker primary blue on hover */
+  transform: translateY(-1px);
+}
+
+/* Optional: secondary button */
+.custom-popover .driver-popover-footer button.secondary {
+  background: #ccc; /* light grey */
+  color: #333;
+}
+
+.custom-popover .driver-popover-footer button.secondary:hover {
+  background: #b3b3b3;
+}
+
