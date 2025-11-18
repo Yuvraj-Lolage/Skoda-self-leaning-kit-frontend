@@ -86,7 +86,7 @@ export function LoginPage() {
             {/* Right Side - Form */}
             <div className="flex flex-col items-center justify-center px-6 lg:px-12 h-full w-full mx-auto   ">
 
-                <div className="w-1/2">
+                <div className="w-full">
                     {/* Header */}
                     <div className="text-center mb-8">
                         <h2 className="text-5xl font-bold mb-2">
@@ -112,13 +112,10 @@ export function LoginPage() {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full h-12 px-4 border border-gray-200 rounded-xl 
-                                        bg-gray-50 dark:bg-gray-800 
-                                        text-gray-900 dark:text-gray-100 
-                                        placeholder-gray-400 dark:placeholder-gray-500 
-                                        focus:bg-white dark:focus:bg-gray-900 
-                                        focus:ring-2 focus:ring-orange-500 
-                                        outline-none transition"
+                                className="w-full h-12 px-4 pr-10
+                                    border border-gray-300 rounded-xl
+                                        outline-none transition
+                                        bg-white"
                                 placeholder="Enter your email"
                             />
                         </div>
@@ -136,12 +133,8 @@ export function LoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Enter your password"
-                                    className="w-full h-12 px-4 pr-10 border border-gray-300 dark:border-gray-600 rounded-xl
-                                      bg-gray-50 dark:bg-gray-800 
-                                        text-gray-900 dark:text-gray-100 
-                                        placeholder-gray-400 dark:placeholder-gray-500 
-                                        focus:bg-white dark:focus:bg-gray-900 
-                                        focus:ring-2 focus:ring-orange-500 
+                                    className="w-full h-12 px-4 pr-10
+                                    border border-gray-300 rounded-xl
                                         outline-none transition"
                                 />
                                 {/* Eye Icon inside input */}
@@ -158,13 +151,6 @@ export function LoginPage() {
 
                         {/* Options */}
                         <div className="flex items-center justify-end">
-                            {/* <label className="flex items-center space-x-2 text-base ">
-                                <input
-                                    type="checkbox"
-                                    className="h-5 w-5 text-orange-600 rounded-md"
-                                />
-                                <span>Remember me</span>
-                            </label> */}
                             <a href="#" className="text-base text-orange-600 hover:text-orange-500">
                                 Forgot password?
                             </a>

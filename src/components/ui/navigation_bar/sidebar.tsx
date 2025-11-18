@@ -14,7 +14,7 @@ interface SidebarProps {
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   const navigationItems = [
     { icon: LayoutDashboard, label: "dashboard", id:"sidebar-dashboard" },
-    { icon: BookOpen, label: "training" ,id:"sidebar-modules"}, // ✅ updated from courses → training
+    { icon: BookOpen, label: "training" ,id:"sidebar-modules"},
     { icon: MessageCircle, label: "chats",id:"sidebar-profile" },
     { icon: GraduationCap, label: "grades",id:"sidebar-grades" },
     { icon: Settings, label: "settings" ,id:"sidebar-settings"},

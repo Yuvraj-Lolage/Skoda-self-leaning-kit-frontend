@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, Play, ChevronDown, ChevronUp } from "lucide-react";
 import axiosInstance from "../../API/axios_instance";
+import { useNavigate } from "react-router-dom";
 
 export default function TrainingModules() {
+  const navigate = useNavigate();
   const [token, setToken] = useState(() => {
     const storedToken = localStorage.getItem("token");
     return storedToken || null;
@@ -34,6 +36,10 @@ export default function TrainingModules() {
     return <div className="p-6 text-gray-500">Loading modules...</div>;
   }
 
+  const openSubmodule = (module_id:string,subModule_id: string) =>{
+    navigate(`/module/${ module_id }/submodule/${ subModule_id}`);
+    alert(`Open Submodule with ID: ${subModule_id}`);
+  }
   const renderStatus = (status: string) => {
     switch (status) {
       case "completed":
@@ -145,7 +151,8 @@ export default function TrainingModules() {
                         </div>
 
                         {/* Submodule Card */}
-                        <div className={`ml-12 flex-1  rounded-lg p-4 shadow-sm flex justify-between items-center hover:shadow-md transition ${ renderStyles(sub.status) }`}>
+                        <div className={`ml-12 flex-1  rounded-lg p-4 shadow-sm flex justify-between items-center hover:shadow-md transition ${ renderStyles(sub.status) }`}
+                          onClick={ ()=> openSubmodule(module.module_id,sub.submodule_id)}>
                           {/* Left Content */}
                           <div>
                             <h6 className="font-medium text-gray-700">{sub.submodule_name}</h6>

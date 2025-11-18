@@ -1,16 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import { Toaster } from "react-hot-toast";
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoginPage } from './components/login/login';
 import Training_info from './components/tranining/training_info';
 import Render_layout from './components/render_layout/render_layout';
+import Submodule from './components/sub_module/sub_module';
 
 function App() {
   const [token, setToken] = useState(() => {
     const storedToken = localStorage.getItem("token");
     return storedToken || null;
   });
+  const [showWelcome, setShowWelcome] = useState<boolean>(false);
 
   return (
     <>
@@ -31,6 +33,10 @@ function App() {
         <Route
           path="/training"
           element={token ? <Training_info /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/module/:id/submodule/:sub_id"
+          element={token ? <Submodule /> : <Navigate to="/login" />}
         />
       </Routes>
 

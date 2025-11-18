@@ -5,6 +5,8 @@ import Dashboard from "../dashboard/dashboard";
 import DashboardHeader from "../ui/dashboard_header/dashboard_header";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
+import { getTokenData } from "../../helper/auth_token";
+import WelcomeScreen from "../ui/welcome_screen/welcome_screen";
 
 // Simple WelcomeModal component definition
 type WelcomeModalProps = {
@@ -38,6 +40,12 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onStartTour, onSkip }) => (
 const Render_layout: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showWelcome, setShowWelcome] = useState(false);
+  const [token, setToken] = useState<string | null>(() => {
+    const storedToken = localStorage.getItem("token");
+    return storedToken ? storedToken : null;
+  });
+  const [tokenData, setTokenData] = useState<any | null>(null);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const startTour = () => {
     const driverObj = driver({
@@ -73,10 +81,21 @@ const Render_layout: React.FC = () => {
     driverObj.drive();
   };
 
+  useEffect(() => {
+    if (token) {
+      setTokenData(getTokenData());
+    }
+  }, [])
 
   useEffect(() => {
-    startTour();
-  }, []);
+    if (tokenData && tokenData.first_visit_welcome == 0) {
+      setShowWelcomeModal(true);
+    }
+    else {
+      console.warn(`Already displayed welcome message`);
+    }
+
+  }, [tokenData]);
   // Render content based on active tab
   const renderContent = () => {
     switch (activeTab) {
@@ -95,8 +114,31 @@ const Render_layout: React.FC = () => {
     }
   };
 
+  const handleCloseWelcome = async () => {
+    try {
+      setShowWelcomeModal(false);
+      if (tokenData && tokenData.first_visit_driver == 0) {
+        startTour();
+      }
+      else {
+        console.warn(`Already visited Driver Tour`);
+      }
+      // Update the tokenData to reflect that the welcome has been shown
+    } catch (err) {
+      console.error("Error updating welcome flag:", err);
+    }
+  };
+
+
   return (
     <>
+      {showWelcomeModal &&
+
+        <WelcomeScreen
+          onClose={handleCloseWelcome}
+          styleType="white"   // "white" | "glass" | "gradient"
+        />
+      }
       <div className="min-h-screen bg-gray-50 flex">
         {/* Sidebar */}
         <div className="fixed inset-y-0 left-0 w-64">
