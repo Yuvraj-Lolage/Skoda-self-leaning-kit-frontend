@@ -1,9 +1,13 @@
-import {
-  LayoutDashboard,
-  BookOpen,
-  MessageCircle,
-  GraduationCap,
+import { 
+  LayoutDashboard, 
+  BookOpen, 
+  MessageCircle, 
+  GraduationCap, 
   Settings,
+  FolderPlus,
+  FilePlus,
+  ClipboardList,
+  BarChart3
 } from "lucide-react";
 
 interface SidebarProps {
@@ -18,6 +22,13 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     { icon: MessageCircle, label: "chats",id:"sidebar-profile" },
     { icon: GraduationCap, label: "grades",id:"sidebar-grades" },
     { icon: Settings, label: "settings" ,id:"sidebar-settings"},
+  ];
+
+  const adminItems = [
+    { icon: FolderPlus, label: "Add Module", active: false },
+    { icon: FilePlus, label: "Add SubModule", active: false },
+    { icon: ClipboardList, label: "Add Quiz", active: false },
+    { icon: BarChart3, label: "View Progress", active: false },
   ];
 
   return (
@@ -51,6 +62,44 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                   />
                   <span className="capitalize">{item.label}</span>
                 </button>
+              </li>
+            );
+          })}
+        </ul>
+        {/* Admin Section */}
+        <div className="mb-2 px-4 text-xs text-gray-500 uppercase tracking-wider">
+          Administration
+        </div>
+        <ul className="space-y-2">
+          {adminItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.label}>
+                <a
+                  href="#"
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    item.active
+                      ? "bg-gradient-to-r from-pink-500 to-orange-500 text-white"
+                      : "text-gray-300 hover:text-white"
+                  }`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    // Admin click handlers can be added here
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!item.active) {
+                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!item.active) {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }
+                  }}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </a>
               </li>
             );
           })}

@@ -5,7 +5,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoginPage } from './components/login/login';
 import Training_info from './components/tranining/training_info';
 import Render_layout from './components/render_layout/render_layout';
-import Submodule from './components/sub_module/sub_module';
+import {Submodule} from './components/sub_module/sub_module';
 
 function App() {
   const [token, setToken] = useState(() => {
@@ -35,8 +35,8 @@ function App() {
           element={token ? <Training_info /> : <Navigate to="/login" />}
         />
         <Route
-          path="/module/:id/submodule/:sub_id"
-          element={token ? <Submodule /> : <Navigate to="/login" />}
+          path="/module/:module_id/submodule/:sub_id"
+          element={token ? <Submodule onBackClick={() => {}}/> : <Navigate to="/login" />}
         />
       </Routes>
 

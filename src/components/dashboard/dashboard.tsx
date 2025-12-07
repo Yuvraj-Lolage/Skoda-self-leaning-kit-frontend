@@ -1,4 +1,8 @@
-import TrainingVideo from "../ui/training_video/training_video";
+import React from "react";
+import { RightPanel } from "./right_side_panel";
+import { StatsCards } from "./stats_cards";
+import { ChartsSection } from "./charts_section";
+import ResumeTrainingCard from "./resume_training_card";
 
 export default function Dashboard() {
     return (
@@ -13,7 +17,18 @@ export default function Dashboard() {
             />
             <TrainingVideo video_url={"http://localhost:5000/videos/module_1.mp4"}/>
              */}
-             <p className='text-black text-center'>Dashboard content</p>
+            <div className="flex-1 p-6 flex gap-6">
+                {/* Left Content Area */}
+                <div className="flex-1 space-y-6">
+                    <StatsCards />
+                    <ResumeTrainingCard/>
+                    <ChartsSection />
+                </div>
+
+                {/* Right Panel */}
+                <RightPanel />
+            </div>
+
 
         </div>
     )
