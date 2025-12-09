@@ -1,14 +1,16 @@
-import { 
-  LayoutDashboard, 
-  BookOpen, 
-  MessageCircle, 
-  GraduationCap, 
+import {
+  LayoutDashboard,
+  BookOpen,
+  MessageCircle,
+  GraduationCap,
   Settings,
   FolderPlus,
   FilePlus,
   ClipboardList,
   BarChart3
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getTokenData } from "../../../helper/auth_token";
 
 interface SidebarProps {
   activeTab: string;
@@ -16,12 +18,15 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
-  const navigationItems = [
-    { icon: LayoutDashboard, label: "dashboard", id:"sidebar-dashboard" },
-    { icon: BookOpen, label: "training" ,id:"sidebar-modules"},
-    { icon: MessageCircle, label: "chats",id:"sidebar-profile" },
-    { icon: GraduationCap, label: "grades",id:"sidebar-grades" },
-    { icon: Settings, label: "settings" ,id:"sidebar-settings"},
+
+  const [navigationItems, setNavigationItems] = useState<any[]>([]);
+
+  const userItems = [
+    { icon: LayoutDashboard, label: "dashboard", id: "sidebar-dashboard" },
+    { icon: BookOpen, label: "training", id: "sidebar-modules" },
+    { icon: MessageCircle, label: "chats", id: "sidebar-profile" },
+    { icon: GraduationCap, label: "grades", id: "sidebar-grades" },
+    { icon: Settings, label: "settings", id: "sidebar-settings" },
   ];
 
   const adminItems = [
@@ -31,11 +36,25 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     { icon: BarChart3, label: "View Progress", active: false },
   ];
 
+  useEffect(() => {
+    function dynamicNavigationMenu() {
+      const userData = getTokenData();
+      if (userData && userData.role === "Admin") {
+        setNavigationItems(adminItems)
+      }else{
+        setNavigationItems(userItems)
+      }
+    }
+
+    dynamicNavigationMenu();
+  }, [])
+
+
   return (
     <div className="w-64 text-white flex flex-col bg-[#1b1b1b] h-screen fixed left-0 top-0">
       {/* Logo */}
       <div className="py-6 px-3 border-b border-white/10">
-        <h2 className="text-center text-4xl font-medium">Academyis</h2>
+        <h2 className="text-center text-4xl font-medium">Škoda</h2>
       </div>
 
       {/* Navigation */}
@@ -49,16 +68,14 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
               <li key={item.label} id={item.id}>
                 <button
                   onClick={() => setActiveTab(item.label)}
-                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors duration-200 ${
-                    active
+                  className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors duration-200 ${active
                       ? "bg-gradient-to-r from-pink-500 to-orange-500 text-white"
                       : "text-gray-400 hover:text-white hover:bg-white/10"
-                  }`}
+                    }`}
                 >
                   <Icon
-                    className={`w-5 h-5 ${
-                      active ? "text-white" : "text-gray-400"
-                    }`}
+                    className={`w-5 h-5 ${active ? "text-white" : "text-gray-400"
+                      }`}
                   />
                   <span className="capitalize">{item.label}</span>
                 </button>
@@ -67,7 +84,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
           })}
         </ul>
         {/* Admin Section */}
-        <div className="mb-2 px-4 text-xs text-gray-500 uppercase tracking-wider">
+        {/* <div className="mb-2 px-4 text-xs text-gray-500 uppercase tracking-wider">
           Administration
         </div>
         <ul className="space-y-2">
@@ -103,7 +120,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
               </li>
             );
           })}
-        </ul>
+        </ul> */}
       </nav>
     </div>
   );

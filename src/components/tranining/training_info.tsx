@@ -38,7 +38,6 @@ export default function TrainingModules() {
 
   const openSubmodule = (module_id:string,subModule_id: string) =>{
     navigate(`/module/${ module_id }/submodule/${ subModule_id}`);
-    alert(`Open Submodule with ID: ${subModule_id}`);
   }
   const renderStatus = (status: string) => {
     switch (status) {

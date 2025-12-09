@@ -6,7 +6,7 @@ import { LoginPage } from './components/login/login';
 import Training_info from './components/tranining/training_info';
 import Render_layout from './components/render_layout/render_layout';
 import {Submodule} from './components/sub_module/sub_module';
-
+import { Assessment } from './components/Assessment/assessment';
 function App() {
   const [token, setToken] = useState(() => {
     const storedToken = localStorage.getItem("token");
@@ -37,6 +37,10 @@ function App() {
         <Route
           path="/module/:module_id/submodule/:sub_id"
           element={token ? <Submodule onBackClick={() => {}}/> : <Navigate to="/login" />}
+        />
+         <Route
+          path="/module/:module_id/assessment/:assessment_id"
+          element={token ? <Assessment/> : <Navigate to="/login" /> }
         />
       </Routes>
 
