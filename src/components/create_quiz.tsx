@@ -1,440 +1,747 @@
-// CreateQuiz.tsx
-import React, { useEffect, useState } from "react";
-import * as XLSX from "xlsx";
-import "./create_module.css";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom"
+import caricature from "../assets/caricature.jpg";
 
-type Message = { type: "success" | "error"; text: string } | null;
-type ModuleOption = { id: string; name: string };
-type SubmoduleOption = { id: string; name: string };
+const TIMER_DURATION = 10;
 
-type RawQuestion = {
-  question: string;
-  options?: string[]; // optional array of options
-  answer?: string | number | boolean; // exact match to one of the options or value
-  explanation?: string;
-  marks?: number;
+function QuizPage({ onLogout, onQuizComplete }) {
+  const [file, setFile] = useState(null);
+  const [quiz, setQuiz] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [timer, setTimer] = useState(TIMER_DURATION);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [timerKey, setTimerKey] = useState(0); // <-- added
+  const [uploadMsg, setUploadMsg] = useState(""); // Add this state
+  const [sidebarOpen, setSidebarOpen] = useState(true); // <-- added
+
+  // Admin upload selections (fixes no-undef ESLint errors)
+  const [moduleId, setModuleId] = useState("");
+  const [submoduleId, setSubmoduleId] = useState("");
+
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+  const navigate = useNavigate();
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!quiz.length || showFeedback) return;
+    if (timer === 0) {
+      handleNext();
+      return;
+    }
+    const interval = setInterval(() => setTimer((t) => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [timer, quiz, showFeedback]);
+
+  const apiCall = async (method, url, data = null) => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      if (data instanceof FormData) headers["Content-Type"] = "multipart/form-data";
+      const res = await axios({ method, url: `http://localhost:5000${url}`, data, headers });
+      return res.data;
+    } catch (err) {
+      setError(err.response?.data?.error || "❌ Token not provided or invalid");
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpload = async () => {
+  if (!moduleId) return setError("Please select a module.");
+  if (!submoduleId) return setError("Please select a submodule.");
+  if (!file) return setError("Please choose a file.");
+
+  const formData = new FormData();
+  formData.append("moduleId", moduleId);
+  formData.append("submoduleId", submoduleId);
+  formData.append("file", file);
+
+  const data = await apiCall("post", "/upload", formData);
+
+  if (data) {
+    setUploadMsg("✅ Quiz uploaded successfully!");
+    setError("");
+    setFile(null);
+  }
 };
 
-export default function CreateQuiz(): React.ReactElement {
-  const [modules, setModules] = useState<ModuleOption[]>([]);
-  const [submodules, setSubmodules] = useState<SubmoduleOption[]>([]);
 
-  const [moduleId, setModuleId] = useState<string>("");
-  const [submoduleId, setSubmoduleId] = useState<string>("");
+const indexToKey = (i) => String.fromCharCode(65 + Number(i)); // 0 -> "A", 1 -> "B"
 
-  const [pasteJson, setPasteJson] = useState<string>("");
-  const [fileName, setFileName] = useState<string>("");
-  const [questions, setQuestions] = useState<RawQuestion[]>([]);
-  const [loadingModules, setLoadingModules] = useState<boolean>(true);
-  const [loadingSubmodules, setLoadingSubmodules] = useState<boolean>(false);
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [message, setMessage] = useState<Message>(null);
-  const [errors, setErrors] = useState<{ module?: string; submodule?: string; questions?: string }>({});
+const convertAssessmentToFrontend = (assessment) => {
+  const assessmentId = assessment.assessmentId ?? assessment.assessment_id ?? "";
+  const moduleIdFromResp = assessment.moduleId ?? assessment.module_id ?? moduleId;
+  const submoduleIdFromResp = assessment.submoduleId ?? assessment.submodule_id ?? submoduleId;
+  const questions = assessment.questions || [];
 
-  // Load modules on mount
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      setLoadingModules(true);
-      try {
-        const res = await fetch("/api/superadmin/modules");
-        if (!res.ok) return;
-        const json = await res.json();
-        if (!mounted) return;
-        if (Array.isArray(json)) {
-          const opts = json
-            .map((m: any) => ({ id: String(m.id ?? m._id ?? m.slug ?? ""), name: String(m.name ?? m.title ?? "") }))
-            .filter((m: ModuleOption) => m.id);
-          setModules(opts);
-          if (opts.length === 1) setModuleId(opts[0].id);
-        }
-      } catch {
-        // ignore
-      } finally {
-        if (mounted) setLoadingModules(false);
-      }
+  const quiz = questions.map((q, idx) => {
+    const opts = (q.options || []).map((opt, j) =>
+      typeof opt === "string" ? { key: indexToKey(j), text: opt } : { key: opt.key ?? indexToKey(j), text: opt.text ?? String(opt) }
+    );
+
+    const correctKey =
+      typeof q.correct === "number"
+        ? indexToKey(q.correct)
+        : (String(q.correct || "").trim().toUpperCase() || "A");
+
+    return {
+      id: q.id ?? `${assessmentId}_${moduleIdFromResp}_${submoduleIdFromResp}_q${idx + 1}`,
+      assessmentId: String(assessmentId),
+      moduleId: String(moduleIdFromResp ?? ""),
+      submoduleId: String(submoduleIdFromResp ?? ""),
+      question: q.question || q.questionText || "",
+      options: opts,
+      correct: correctKey,
     };
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  });
 
-  // Load submodules when moduleId changes
-  useEffect(() => {
-    if (!moduleId) {
-      setSubmodules([]);
-      setSubmoduleId("");
+  return {
+    quiz,
+    message: assessment.title ?? assessment.message ?? "",
+    latestVersion: assessment.version ?? assessment.latestVersion ?? "1",
+    createdAt: assessment.createdAt ?? assessment.created_at,
+  };
+};
+
+  // Replace your current fetchQuiz with this
+  const fetchQuiz = async () => {
+    if (!token) {
+      setError("Please login to load quizzes (missing token).");
       return;
     }
-    let mounted = true;
-    const loadSub = async () => {
-      setLoadingSubmodules(true);
-      try {
-        // Expected API: GET /api/superadmin/modules/:id/submodules or /api/superadmin/submodules?moduleId=...
-        const res = await fetch(`/api/superadmin/modules/${encodeURIComponent(moduleId)}/submodules`);
-        if (!res.ok) {
-          // fallback to query param endpoint
-          const fallback = await fetch(`/api/superadmin/submodules?moduleId=${encodeURIComponent(moduleId)}`);
-          if (!fallback.ok) return;
-          const fallbackJson = await fallback.json();
-          if (!mounted) return;
-          if (Array.isArray(fallbackJson)) {
-            const opts = fallbackJson.map((s: any) => ({ id: String(s.id ?? s._id ?? s.slug ?? ""), name: String(s.name ?? s.title ?? "") })).filter(Boolean);
-            setSubmodules(opts);
-            if (opts.length === 1) setSubmoduleId(opts[0].id);
-          }
-          return;
-        }
-        const json = await res.json();
-        if (!mounted) return;
-        if (Array.isArray(json)) {
-          const opts = json.map((s: any) => ({ id: String(s.id ?? s._id ?? s.slug ?? ""), name: String(s.name ?? s.title ?? "") })).filter(Boolean);
-          setSubmodules(opts);
-          if (opts.length === 1) setSubmoduleId(opts[0].id);
-        }
-      } catch {
-        // ignore
-      } finally {
-        if (mounted) setLoadingSubmodules(false);
-      }
-    };
-    loadSub();
-    return () => {
-      mounted = false;
-    };
-  }, [moduleId]);
 
-  // Helpers to parse files
-  const parseJsonText = (text: string): RawQuestion[] | null => {
-    try {
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed)) {
-        // Attempt to normalize items to RawQuestion
-        return parsed.map((it) => ({
-          question: String(it.question ?? it.q ?? it.title ?? ""),
-          options: Array.isArray(it.options) ? it.options.map(String) : undefined,
-          answer: it.answer ?? it.correct ?? it.key ?? undefined,
-          explanation: it.explanation ?? it.explanatory ?? undefined,
-          marks: typeof it.marks === "number" ? it.marks : undefined,
-        }));
-      } else if (typeof parsed === "object" && parsed !== null && Array.isArray((parsed as any).questions)) {
-        return (parsed as any).questions.map((it: any) => ({
-          question: String(it.question ?? it.q ?? it.title ?? ""),
-          options: Array.isArray(it.options) ? it.options.map(String) : undefined,
-          answer: it.answer ?? it.correct ?? it.key ?? undefined,
-          explanation: it.explanation ?? undefined,
-          marks: typeof it.marks === "number" ? it.marks : undefined,
-        }));
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  };
+    const params = [];
+    if (moduleId) params.push(`moduleId=${encodeURIComponent(moduleId)}`);
+    if (submoduleId) params.push(`submoduleId=${encodeURIComponent(submoduleId)}`);
+    const query = params.length ? `?${params.join("&")}` : "";
 
-  const handleFile = (file: File | null) => {
-    setMessage(null);
-    setFileName("");
-    setQuestions([]);
-    setPasteJson("");
-    if (!file) return;
+    const data = await apiCall("get", `/quiz/latest${query}`);
+    if (!data) return; // apiCall already set error
 
-    setFileName(file.name);
-    const lower = file.name.toLowerCase();
-    if (lower.endsWith(".json")) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const text = String(reader.result ?? "");
-        const parsed = parseJsonText(text);
-        if (!parsed) {
-          setErrors({ questions: "JSON format not recognized. Expect array of question objects." });
-        } else {
-          setErrors({});
-          setQuestions(parsed);
-        }
+    let converted = null;
+
+    // 1) backend already returned frontend-ready shape
+    if (Array.isArray(data.quiz)) {
+      converted = {
+        quiz: data.quiz,
+        message: data.message ?? "",
+        latestVersion: data.latestVersion ?? data.version ?? "1",
       };
-      reader.onerror = () => setErrors({ questions: "Unable to read JSON file." });
-      reader.readAsText(file);
+    }
+    // 2) backend returned quizData under a different key
+    else if (Array.isArray(data.quizData)) {
+      converted = { quiz: data.quizData, message: data.message ?? "", latestVersion: data.latestVersion ?? "1" };
+    }
+    // 3) backend returned assessment-style object with questions array
+    else if (Array.isArray(data.questions)) {
+      converted = convertAssessmentToFrontend(data);
+    } else {
+      setError("Unexpected quiz response format");
       return;
     }
 
-    // Try Excel parsing for .xls/.xlsx/.csv
-    if (lower.endsWith(".xls") || lower.endsWith(".xlsx") || lower.endsWith(".csv")) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const data = reader.result;
-          const workbook = XLSX.read(data, { type: "array" });
-          // Use first sheet
-          const sheetName = workbook.SheetNames[0];
-          const sheet = workbook.Sheets[sheetName];
-          // Convert to JSON rows
-          const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: null });
-          // Expect columns like: question, option1, option2, option3, option4, answer (or options as JSON string)
-          const normalized: RawQuestion[] = rows.map((r) => {
-            const q = String(r.question ?? r.q ?? r.Question ?? "");
-            // collect option columns
-            const opts: string[] = [];
-            // common column names checks
-            ["option1", "option2", "option3", "option4", "opt1", "opt2", "opt3", "opt4", "a", "b", "c", "d"].forEach((col) => {
-              if (col in r && r[col] != null && String(r[col]).trim() !== "") opts.push(String(r[col]));
-            });
-            // if there is a column `options` as JSON string or semicolon separated
-            if (opts.length === 0 && r.options) {
-              if (typeof r.options === "string") {
-                try {
-                  const maybe = JSON.parse(r.options);
-                  if (Array.isArray(maybe)) opts.push(...maybe.map(String));
-                } catch {
-                  // fallback: split by comma or semicolon
-                  opts.push(...String(r.options).split(/[,;|]/).map((s) => s.trim()).filter(Boolean));
-                }
-              } else if (Array.isArray(r.options)) {
-                opts.push(...r.options.map(String));
-              }
-            }
-            const answer = r.answer ?? r.correct ?? r.key ?? null;
-            const explanation = r.explanation ?? r.explanatory ?? null;
-            const marks = typeof r.marks === "number" ? r.marks : undefined;
-            return { question: q, options: opts.length ? opts : undefined, answer, explanation, marks };
-          });
-          setErrors({});
-          setQuestions(normalized);
-        } catch (err) {
-          setErrors({ questions: "Unable to parse spreadsheet. Ensure it has a valid first sheet." });
-        }
+    setQuiz(converted.quiz || []);
+    setAnswers({});
+    setScore(0);
+    setCurrentIndex(0);
+    setTimer(TIMER_DURATION);
+    setTimerKey((k) => k + 1);
+    setError("");
+    setUploadMsg(converted.message ? `${converted.message} (v${converted.latestVersion || "?"})` : "");
+  };
+
+  const handleOptionClick = (key) => {
+    if (showFeedback) return;
+    setAnswers({ ...answers, [currentIndex]: key });
+    const isCorrect = quiz[currentIndex].correct === key;
+    if (isCorrect) setScore((s) => s + 1);
+    setShowFeedback(true);
+
+    setTimeout(() => {
+      setShowFeedback(false);
+      handleNext();
+    }, 1500);
+  };
+
+  const handleNext = () => {
+    if (currentIndex < quiz.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setTimer(TIMER_DURATION);
+      setTimerKey((k) => k + 1);
+    } else {
+      if (onQuizComplete) onQuizComplete(score, quiz.length);
+      navigate("/score");
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setTimer(TIMER_DURATION);
+      setTimerKey((k) => k + 1);
+    }
+  };
+
+  const optionStyle = (key) => {
+    if (!showFeedback)
+      return {
+        background: answers[currentIndex] === key ? "#FFB400" : "#fff",
+        color: "#182848",
+        padding: "16px",
+        marginBottom: "12px",
+        borderRadius: "12px",
+        fontSize: "16px",
+        cursor: "pointer",
+        fontWeight: 600,
+        transition: "all 0.3s ease",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-start",
       };
-      reader.onerror = () => setErrors({ questions: "Unable to read file." });
-      reader.readAsArrayBuffer(file);
-      return;
-    }
-
-    setErrors({ questions: "Unsupported file type. Use .json, .xls, .xlsx or .csv" });
-  };
-
-  // When user pastes JSON into textarea
-  const handlePasteJson = () => {
-    setMessage(null);
-    setFileName("");
-    setQuestions([]);
-    setErrors({});
-    if (!pasteJson.trim()) {
-      setErrors({ questions: "Paste JSON first or upload a file." });
-      return;
-    }
-    const parsed = parseJsonText(pasteJson);
-    if (!parsed) {
-      setErrors({ questions: "JSON not recognized. Expect an array of question objects or { questions: [...] }." });
-      return;
-    }
-    setQuestions(parsed);
-  };
-
-  // Validate before submit
-  const validateBeforeSubmit = (): boolean => {
-    const e: typeof errors = {};
-    if (!moduleId) e.module = "Please select a module.";
-    if (!submoduleId) e.submodule = "Please select a submodule.";
-    if (!questions || !questions.length) e.questions = "No questions provided. Upload file or paste JSON.";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleSubmit = async (ev: React.FormEvent) => {
-    ev.preventDefault();
-    setMessage(null);
-    if (!validateBeforeSubmit()) return;
-
-    setSubmitting(true);
-    try {
-      // Build payload
-      const payload = {
-        moduleId,
-        submoduleId,
-        quiz: {
-          createdAt: new Date().toISOString(),
-          questions: questions.map((q) => ({
-            question: q.question,
-            options: q.options ?? [], // ensure array
-            answer: q.answer ?? null,
-            explanation: q.explanation ?? null,
-            marks: typeof q.marks === "number" ? q.marks : 1,
-          })),
-        },
+    if (key === quiz[currentIndex].correct)
+      return {
+        background: "#28a745",
+        color: "#fff",
+        padding: "16px",
+        marginBottom: "12px",
+        borderRadius: "12px",
+        fontSize: "16px",
+        fontWeight: 600,
+        boxShadow: "0 0 15px #28a745",
+        transform: "scale(1.05)",
+        transition: "all 1s ease",
       };
-
-      const res = await fetch("/api/superadmin/quizzes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        const json = await res.json().catch(() => ({}));
-        setMessage({ type: "success", text: json.message || "Quiz created successfully." });
-        // reset form
-        setFileName("");
-        setPasteJson("");
-        setQuestions([]);
-      } else {
-        let err = `Server ${res.status}`;
-        try {
-          const j = await res.json();
-          err = j.error || j.message || JSON.stringify(j);
-        } catch {}
-        setMessage({ type: "error", text: `Server error: ${err}` });
-      }
-    } catch (err) {
-      const errorMsg = typeof err === "object" && err !== null && "message" in err ? String((err as any).message) : String(err);
-      setMessage({ type: "error", text: `Network error: ${errorMsg}` });
-    } finally {
-      setSubmitting(false);
-    }
+    if (answers[currentIndex] === key)
+      return {
+        background: "#dc3545",
+        color: "#fff",
+        padding: "16px",
+        marginBottom: "12px",
+        borderRadius: "12px",
+        fontSize: "16px",
+        fontWeight: 600,
+        boxShadow: "0 0 15px #dc3545",
+        transform: "scale(1.05)",
+        transition: "all 1s ease",
+      };
+    return {
+      background: "#f4f6f8",
+      color: "#182848",
+      padding: "16px",
+      marginBottom: "12px",
+      borderRadius: "12px",
+      fontSize: "16px",
+      fontWeight: 600,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-start",
+      transition: "all 2s ease",
+    };
   };
 
   return (
-    <div className="cm-root">
-      <div className="cm-card" style={{ maxWidth: 900 }}>
-        <div className="cm-header">
-          <div>
-            <h3 className="cm-title">Create Quiz</h3>
-            <p className="cm-sub">Upload questions via JSON or Excel and assign to Module/Submodule</p>
-          </div>
-          <div className="cm-header-badge">Administration</div>
+    <div
+      style={{
+        marginLeft: sidebarOpen ? 250 : 60,
+        transition: "margin-left 0.3s",
+        padding: 20,
+        background: "#F4F6F8",
+        minHeight: "100vh",
+        fontFamily: "'Poppins', sans-serif",
+      }}
+    >
+      {/* Collapsible Sidebar */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          height: "100vh",
+          width: sidebarOpen ? 250 : 60,
+          background: "black",
+          color: "#fff",
+          transition: "width 0.3s",
+          zIndex: 100,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          paddingTop: 30,
+          boxShadow: "2px 0 12px rgba(30,40,90,0.07)",
+        }}
+      >
+        {/* Collapse/Expand Button */}
+        <button
+          onClick={() => setSidebarOpen((open) => !open)}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#fff",
+            fontSize: 24,
+            cursor: "pointer",
+            marginBottom: 30,
+            alignSelf: "flex-end",
+            marginRight: sidebarOpen ? 10 : 0,
+            transition: "all 0.2s",
+          }}
+          aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+        >
+          {sidebarOpen ? "⏴" : "⏵"}
+        </button>
+
+        {/* Avatar */}
+        {sidebarOpen && (
+          <img
+            src={`https://ui-avatars.com/api/?name=${role || "User"}&background=4b6cb7&color=fff&size=96&rounded=true`}
+            alt="User Avatar"
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: "50%",
+              marginBottom: 20,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              border: "3px solid #fff",
+              background: "#4b6cb7",
+              objectFit: "cover",
+              transition: "all 0.3s",
+            }}
+          />
+        )}
+
+        {/* App Name and Role */}
+        {sidebarOpen && (
+          <>
+            <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 32, letterSpacing: 1 }}>
+              ŠKODA Quiz
+            </h2>
+            <div style={{ marginBottom: 24, fontWeight: 600, fontSize: 16 }}>
+              {role?.toUpperCase()}
+            </div>
+            <button
+              onClick={onLogout}
+              style={{
+                padding: "10px 28px",
+                borderRadius: 10,
+                border: "none",
+                background: "linear-gradient(90deg, #d62569a0, #ea5205ff)",
+                color: "#222",
+                fontWeight: 700,
+                fontSize: 16,
+                cursor: "pointer",
+                marginBottom: 32,
+                boxShadow: "0 2px 8px #ffb30022",
+                transition: "background 0.2s",
+              }}
+            >
+              Logout
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Top Bar */}
+      
+
+      {/* Error Message */}
+      {error && <div style={{ color: "#dc3545", fontWeight: "bold", marginBottom: 16 }}>{error}</div>}
+      
+      {/* Admin Upload */}
+      {role === "superadmin" && (
+  <div
+    style={{
+      marginBottom: 20,
+      background: "#fff",
+      color: "#182848",
+      padding: 20,
+      borderRadius: 12,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+    }}
+  >
+    <h2 style={{ marginBottom: 10 }}>Upload Quiz</h2>
+
+    {/* Module Select */}
+    <div style={{ marginBottom: 10 }}>
+      <label style={{ marginRight: 10, fontWeight: 600 }}>Module:</label>
+      <select
+        value={moduleId}
+        onChange={(e) => setModuleId(e.target.value)}
+        style={{
+          padding: 8,
+          borderRadius: 6,
+          border: "1px solid #ccc",
+          fontSize: 14,
+        }}
+      >
+        <option value="">Select Module</option>
+        <option value="1">Module 1</option>
+        <option value="2">Module 2</option>
+        <option value="3">Module 3</option>
+        <option value="4">Module 4</option>
+        <option value="5">Module 5</option>
+        <option value="6">Module 6</option>
+
+      </select>
+    </div>
+
+    {/* Submodule Select */}
+    <div style={{ marginBottom: 10 }}>
+      <label style={{ marginRight: 10, fontWeight: 600 }}>Submodule:</label>
+      <select
+        value={submoduleId}
+        onChange={(e) => setSubmoduleId(e.target.value)}
+        style={{
+          padding: 8,
+          borderRadius: 6,
+          border: "1px solid #ccc",
+          fontSize: 14,
+        }}
+      >
+        <option value="">Select Submodule</option>
+        <option value="1">Submodule 1</option>
+        <option value="2">Submodule 2</option>
+        <option value="3">Submodule 3</option>
+        <option value="4">Submodule 4</option>
+        <option value="5">Submodule 5</option>
+        <option value="6">Submodule 6</option>
+      </select>
+    </div>
+
+    {/* File Input */}
+    <input
+      type="file"
+      onChange={(e) => setFile(e.target.files[0])}
+      style={{ marginBottom: 10 }}
+    />
+
+    {/* Upload Button */}
+    <button
+      onClick={handleUpload}
+      style={{
+        padding: "8px 16px",
+        borderRadius: 8,
+        border: "none",
+        background: "#040404ff",
+        color: "#fff",
+        fontWeight: 600,
+        cursor: "pointer",
+        transition: "all 0.3s ease",
+        marginTop: 10,
+      }}
+    >
+      Upload
+    </button>
+  </div>
+)}
+
+
+      {/* Upload Message */}
+      {uploadMsg && (
+        <div style={{ color: "#28a745", fontWeight: "bold", marginBottom: 16, marginRight: 10 }}>
+          {uploadMsg}
+        </div>
+      )}
+
+      {/* Module / Submodule selection (visible to all users) */}
+      <div style={{ marginBottom: 20, display: "flex", gap: 12, alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label style={{ fontWeight: 600 }}>Module:</label>
+          <select
+            value={moduleId}
+            onChange={(e) => setModuleId(e.target.value)}
+            style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc", fontSize: 14 }}
+          >
+            <option value="">All Modules (latest)</option>
+            <option value="1">Module 1</option>
+            <option value="2">Module 2</option>
+            <option value="3">Module 3</option>
+            <option value="4">Module 4</option>
+            <option value="5">Module 5</option>
+            <option value="6">Module 6</option>
+
+          </select>
         </div>
 
-        <form className="cm-form" onSubmit={handleSubmit} noValidate>
-          <label className="cm-label">
-            Module
-            <select
-              className={`cm-input ${errors.module ? "cm-input-error" : ""}`}
-              value={moduleId}
-              onChange={(e) => setModuleId(e.target.value)}
-              disabled={loadingModules}
-            >
-              <option value="">{loadingModules ? "Loading modules…" : "Select a module"}</option>
-              {modules.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-            {errors.module && <div className="cm-error">{errors.module}</div>}
-          </label>
-
-          <label className="cm-label">
-            Submodule
-            <select
-              className={`cm-input ${errors.submodule ? "cm-input-error" : ""}`}
-              value={submoduleId}
-              onChange={(e) => setSubmoduleId(e.target.value)}
-              disabled={!moduleId || loadingSubmodules}
-            >
-              <option value="">{!moduleId ? "Choose a module first" : loadingSubmodules ? "Loading submodules…" : "Select a submodule"}</option>
-              {submodules.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-            {errors.submodule && <div className="cm-error">{errors.submodule}</div>}
-          </label>
-
-          <div style={{ display: "grid", gap: 8 }}>
-            <label className="cm-label">
-              Paste JSON (array of questions) — OR upload a file (.json, .xls, .xlsx, .csv)
-              <textarea
-                className={`cm-input`}
-                rows={6}
-                value={pasteJson}
-                onChange={(e) => setPasteJson(e.target.value)}
-                placeholder='e.g. [{"question":"Q1","options":["a","b","c","d"],"answer":"a"}, ...]'
-                disabled={submitting}
-                style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, monospace" }}
-              />
-            </label>
-
-            <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 4 }}>
-              <input
-                id="quiz-file-input"
-                type="file"
-                accept=".json,.xls,.xlsx,.csv"
-                onChange={(e) => handleFile(e.target.files && e.target.files[0] ? e.target.files[0] : null)}
-                disabled={submitting}
-              />
-              <button
-                type="button"
-                className="cm-btn ghost"
-                onClick={handlePasteJson}
-                disabled={submitting}
-                title="Parse pasted JSON"
-              >
-                Parse Pasted JSON
-              </button>
-
-              <div style={{ color: "#6b7280", fontSize: 13 }}>
-                {fileName ? `Selected: ${fileName}` : "No file selected"}
-              </div>
-            </div>
-
-            {errors.questions && <div className="cm-error">{errors.questions}</div>}
-          </div>
-
-          {/* Preview */}
-          <div style={{ marginTop: 4 }}>
-            <h4 style={{ margin: "6px 0 8px 0", fontSize: 15 }}>Preview ({questions.length})</h4>
-            <div style={{ maxHeight: 220, overflow: "auto", padding: 8, borderRadius: 10, border: "1px solid #eef2ff", background: "#fbfcfe" }}>
-              {questions.length === 0 && (
-                <div style={{ color: "#6b7280", fontSize: 13 }}>No questions parsed yet. Paste JSON or upload a file.</div>
-              )}
-              {questions.map((q, idx) => (
-                <div key={idx} style={{ marginBottom: 10, paddingBottom: 6, borderBottom: "1px solid rgba(15,23,42,0.04)" }}>
-                  <div style={{ fontWeight: 600 }}>{idx + 1}. {q.question}</div>
-                  {Array.isArray(q.options) && q.options.length > 0 && (
-                    <ol style={{ marginTop: 6, marginBottom: 6 }}>
-                      {q.options.map((o, i) => (
-                        <li key={i} style={{ fontSize: 13 }}>{o}</li>
-                      ))}
-                    </ol>
-                  )}
-                  <div style={{ fontSize: 13, color: "#6b7280" }}>Answer: <span style={{ color: "#0f172a", fontWeight: 600 }}>{String(q.answer ?? "")}</span></div>
-                  {q.explanation && <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>Explanation: {q.explanation}</div>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="cm-actions" style={{ marginTop: 12 }}>
-            <button type="submit" className="cm-btn primary" disabled={submitting}>
-              {submitting ? "Submitting…" : "Create Quiz"}
-            </button>
-
-            <button
-              type="button"
-              className="cm-btn ghost"
-              onClick={() => {
-                setPasteJson("");
-                setFileName("");
-                setQuestions([]);
-                setMessage(null);
-                setErrors({});
-              }}
-              disabled={submitting}
-            >
-              Reset
-            </button>
-          </div>
-        </form>
-
-        {message && <div className={`cm-toast ${message.type === "success" ? "success" : "error"}`} style={{ marginTop: 12 }}>{message.text}</div>}
-
-        <div className="cm-hint" style={{ marginTop: 12 }}>
-          Example expected JSON schema: <code style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, monospace" }}>
-            {'[{"question":"...","options":["a","b","c"],"answer":"a","explanation":"..."}]'}
-          </code>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label style={{ fontWeight: 600 }}>Submodule:</label>
+          <select
+            value={submoduleId}
+            onChange={(e) => setSubmoduleId(e.target.value)}
+            style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc", fontSize: 14 }}
+          >
+            <option value="">All Submodules</option>
+            <option value="1">Submodule 1</option>
+            <option value="2">Submodule 2</option>
+            <option value="3">Submodule 3</option>
+            <option value="4">Submodule 4</option>
+            <option value="5">Submodule 5</option>
+            <option value="6">Submodule 6</option>
+          </select>
         </div>
       </div>
+      
+      {/* Load Quiz Button */}
+      <button
+        onClick={fetchQuiz}
+        style={{
+          padding: "10px 20px",
+          borderRadius: 8,
+          border: "none",
+          background: "linear-gradient(90deg, #d62569a0, #ea5205ff)",
+          color: "#fff",
+          fontWeight: 600,
+          marginBottom: 20,
+          cursor: "pointer",
+          transition: "all 0.3s ease",
+          
+        }}
+      >
+        Load Quiz
+      </button>
+
+      {/* Quiz Card */}
+      {quiz.length > 0 && (
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: 30,
+            maxWidth: 720,
+            margin: "0 auto",
+            position: "relative",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+            transition: "all 2s ease",
+          }}
+        >
+          {/* Question Header */}
+          <div style={{ marginBottom: 16, fontSize: 18, fontWeight: 600, color: "#030408ff" }}>
+            Question {currentIndex + 1} of {quiz.length}
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 20, color: "#2e5dbbff" }}>
+            {quiz[currentIndex].question}
+          </div>
+
+          {/* Options */}
+          <div>
+            {quiz[currentIndex].options.map((opt) => (
+              <div key={opt.key} onClick={() => handleOptionClick(opt.key)} style={optionStyle(opt.key)}>
+                <strong style={{ marginRight: 8 }}>{opt.key}.</strong> {opt.text}
+              </div>
+            ))}
+          </div>
+
+          {/* Timer Bar */}
+          <div
+  key={timerKey}
+  style={{
+    marginTop: 20,
+    height: 10,
+    background: "#f4f6f8",
+    borderRadius: 5,
+    overflow: "hidden",
+    boxShadow: "inset 0 0 5px rgba(0,0,0,0.1)",
+  }}
+>
+  <div
+    style={{
+      width: `${(timer / TIMER_DURATION) * 100}%`,
+      height: "100%",
+      background: "linear-gradient(90deg, #d62569, #ea5205)",
+      borderRadius: 5,
+      transition: "width 1s linear",
+      boxShadow: "0 0 8px rgba(234, 82, 5, 0.4)",
+    }}
+  />
+</div>
+
+
+          {/* Navigation Buttons */}
+          <div style={{ marginTop: 25, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        
+            {currentIndex > 0 && (
+              <button
+                onClick={handlePrevious}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "#6c757d",
+                  color: "#fff",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 1s ease",
+                }}
+              >
+                ⬅ Previous
+              </button>
+            )}
+               <button
+              onClick={handleNext}
+              style={{
+                padding: "8px 16px",
+                borderRadius: 8,
+                border: "none",
+          background: "linear-gradient(90deg, #d62569a0, #ea5205ff)",
+                color: "#e9ecf3ff",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 1s ease",
+              }}
+            >
+              Next ➡
+            </button>
+            
+          </div>          
+        </div>
+      )}
+<br/><br/><br/><br/><br/><br/><br/>
+
+      {/* Floating Avatar Guide */}
+      <div
+        style={{
+          position: "fixed", // <-- changed from "flex" to "fixed"
+          bottom: 32,
+          right: 32,         // <-- fixed distance from the right edge
+          zIndex: 300,
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 16,
+          pointerEvents: "none", // so it doesn't block quiz clicks
+        }}
+      >
+        {/* Speech Bubble */}
+        <div
+          style={{
+            background: "#fff",
+            color: "#182848",
+            borderRadius: "16px 16px 16px 0",
+            boxShadow: "0 4px 16px rgba(30,40,90,0.10)",
+            padding: "18px 24px",
+            fontSize: 16,
+            fontWeight: 500,
+            maxWidth: 320,
+            marginBottom: 8,
+            pointerEvents: "auto",
+            transition: "all 0.3s",
+            animation: "bounce 3s infinite", // <-- add this line
+          }}
+        >
+          {quiz.length === 0
+            ? "👋 Hi! load a quiz to get started."
+            : timer > 3
+            ? "Let's go! Read the question and pick your answer."
+            : timer > 0
+            ? "⏳ Time is running out."
+            : "Time's up! Moving to the next question."}
+        </div>
+        {/* Avatar */}
+        <img
+          src={caricature}
+           alt="Guide Avatar"
+           style={{
+             width: 64,
+             height: 64,
+             borderRadius: "50%",
+             boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+             border: "3px solid #fff",
+             background: "#ffb400",
+             objectFit: "cover",
+             pointerEvents: "auto",
+             transition: "all 0.3s",
+             animation: "bounce 3s infinite",
+           }}
+         />
+      </div>
+      {/* Right Sidebar for Question Navigation */}
+{quiz.length > 0 && (
+  <div
+    style={{
+      position: "fixed",
+      top: 0,
+      right: 0,
+      height: "100vh",
+      width: 80,
+      background: "#fff",
+      boxShadow: "-2px 0 12px rgba(30,40,90,0.07)",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      paddingTop: 40,
+      zIndex: 101,
+    }}
+  >
+    <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 18, color: "#4b6cb7" }}>
+      Q.No.
+    </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {quiz.map((_, idx) => {
+        let bg, color;
+        if (idx === currentIndex) {
+          bg = "#28a745"; // green for current
+          color = "#fff";
+        } else if (answers[idx]) {
+          bg = "#007bff"; // blue for attempted
+          color = "#fff";
+        } else {
+          bg = "#ff9800"; // orange for not attempted
+          color = "#fff";
+        }
+        return (
+          <button
+            key={idx}
+            // Only enable the button for the current question
+            disabled={idx !== currentIndex}
+            onClick={() => {
+              if (idx === currentIndex) {
+                setCurrentIndex(idx);
+                setTimer(TIMER_DURATION);
+                setTimerKey((k) => k + 1);
+              }
+            }}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              border: "none",
+              background: bg,
+              color: color,
+              fontWeight: 700,
+              fontSize: 18,
+              cursor: idx === currentIndex ? "pointer" : "not-allowed",
+              opacity: idx === currentIndex ? 1 : 0.6,
+              boxShadow: idx === currentIndex ? "0 2px 8px #28a74555" : "none",
+              outline: "none",
+              transition: "all 0.2s",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            aria-label={`Go to question ${idx + 1}`}
+          >
+            {idx + 1}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+)}
+      <style>
+{`
+@keyframes bounce {
+  0%, 100% { transform: translateY(0);}
+  50% { transform: translateY(-18px);}
+}
+`}
+</style>
     </div>
   );
 }
+
+export default QuizPage;
