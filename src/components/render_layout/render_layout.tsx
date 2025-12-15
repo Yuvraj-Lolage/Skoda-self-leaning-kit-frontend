@@ -7,6 +7,7 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { getTokenData } from "../../helper/auth_token";
 import WelcomeScreen from "../ui/welcome_screen/welcome_screen";
+import ModuleManager from "../super_admin/add_module/module_manager";
 
 // Simple WelcomeModal component definition
 type WelcomeModalProps = {
@@ -109,6 +110,8 @@ const Render_layout: React.FC = () => {
         return <h2 className="text-xl">🎓 Grades Content</h2>;
       case "settings":
         return <h2 className="text-xl">⚙️ Settings Content</h2>;
+      case "add-module":
+        return <ModuleManager/>;
       default:
         return <h2 className="text-xl">Welcome!</h2>;
     }

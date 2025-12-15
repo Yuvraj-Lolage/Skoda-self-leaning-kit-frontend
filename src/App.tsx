@@ -7,6 +7,7 @@ import Training_info from './components/tranining/training_info';
 import Render_layout from './components/render_layout/render_layout';
 import {Submodule} from './components/sub_module/sub_module';
 import { Assessment } from './components/Assessment/assessment';
+import ModuleManager from './components/super_admin/add_module/module_manager';
 function App() {
   const [token, setToken] = useState(() => {
     const storedToken = localStorage.getItem("token");
@@ -33,6 +34,10 @@ function App() {
         <Route
           path="/training"
           element={token ? <Training_info /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/add-module"
+          element={token ? <ModuleManager/> : <Navigate to="/login" />}
         />
         <Route
           path="/module/:module_id/submodule/:sub_id"

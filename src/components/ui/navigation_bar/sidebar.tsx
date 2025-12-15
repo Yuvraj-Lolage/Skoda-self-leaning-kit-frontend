@@ -22,18 +22,18 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   const [navigationItems, setNavigationItems] = useState<any[]>([]);
 
   const userItems = [
-    { icon: LayoutDashboard, label: "dashboard", id: "sidebar-dashboard" },
-    { icon: BookOpen, label: "training", id: "sidebar-modules" },
+    { icon: LayoutDashboard, label: "dashboard", id: "sidebar-dashboard", url:"dashdoard" },
+    { icon: BookOpen, label: "training", id: "sidebar-modules", url:"training" },
     { icon: MessageCircle, label: "chats", id: "sidebar-profile" },
     { icon: GraduationCap, label: "grades", id: "sidebar-grades" },
     { icon: Settings, label: "settings", id: "sidebar-settings" },
   ];
 
   const adminItems = [
-    { icon: FolderPlus, label: "Add Module", active: false },
-    { icon: FilePlus, label: "Add SubModule", active: false },
-    { icon: ClipboardList, label: "Add Quiz", active: false },
-    { icon: BarChart3, label: "View Progress", active: false },
+    { icon: FolderPlus, label: "Add Module", id:"add-module", url:"add-module" },
+    { icon: FilePlus, label: "Add SubModule", id:"add-submodule", url:"add-submodule" },
+    { icon: ClipboardList, label: "Add Quiz", id:"" },
+    { icon: BarChart3, label: "View Progress", id:"" },
   ];
 
   useEffect(() => {
@@ -63,11 +63,10 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.label;
-
             return (
               <li key={item.label} id={item.id}>
                 <button
-                  onClick={() => setActiveTab(item.label)}
+                  onClick={() => setActiveTab(item.url)}
                   className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors duration-200 ${active
                       ? "bg-gradient-to-r from-pink-500 to-orange-500 text-white"
                       : "text-gray-400 hover:text-white hover:bg-white/10"
