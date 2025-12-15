@@ -73,6 +73,8 @@ export default function TrainingModules() {
             {modules.map((module, index) => (
               module.completed = module.status === "completed",
               module.current = module.status === "in_progress",
+              module.completed = module.status === "completed",
+              module.current = module.status === "in_progress",
               <div key={module.module_id} className="border rounded-xl">
                 {/* Module Header */}
                 <div
@@ -122,6 +124,17 @@ export default function TrainingModules() {
                       <p className="text-sm text-gray-500 mt-1">
                         {renderStatus(module.status)}
                       </p>
+                      {(module.completed || module.current) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/module/${module.module_id}`);
+                          }}
+                          className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
+                        >
+                          Start Module
+                        </button>
+                      )}
                     </div>
                   </div>
 
