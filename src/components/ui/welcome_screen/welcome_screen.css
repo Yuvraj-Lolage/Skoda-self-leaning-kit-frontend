@@ -1,0 +1,141 @@
+/* Fullscreen background dark overlay */
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45); /* dark transparent layer */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* SECOND transparent blur layer */
+.blur-layer {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(12px); /* BLUR EFFECT */
+  -webkit-backdrop-filter: blur(12px);
+  z-index: -1; /* keep behind the card */
+}
+
+
+/* MAIN CARD */
+.welcome-card {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  padding: 60px 40px;
+  border-radius: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+}
+
+/* Style Variation 1 – White Card */
+.welcome-card.white {
+    height: 92vh;
+    width:80%;
+  background: white;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Style Variation 2 – Glassmorphism */
+.welcome-card.glass {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+/* Style Variation 3 – Gradient */
+.welcome-card.gradient {
+  background: linear-gradient(135deg, #4e9fdb, #1d72b8);
+  color: white;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+
+/* Caricature images */
+.caricature {
+  width: 60%;
+  height: auto;
+  object-fit: contain;
+}
+
+.caricature.left {
+    right: -170px;
+    position: absolute;
+  transform: translateX(-20px);
+}
+
+.caricature.right {
+    left: -230px;
+    position: absolute;
+  transform: translateX(20px);
+}
+
+/* Center content */
+.welcome-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #1d72b8; /* Skoda blue */
+}
+
+.welcome-heading {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.welcome-desc {
+  font-size: 1rem;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+.welcome-content {
+    background-color: powderblue;
+    border-radius: 20px;
+    padding: 100px;
+  text-align: center;
+  width: 80%;
+}
+
+.welcome-content h2 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+/* Start button */
+.start-btn {
+  background: #1d72b8;
+  color: white;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.start-btn:hover {
+  background: #155a91;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .welcome-card {
+    flex-direction: column;
+    padding: 40px;
+  }
+
+  .caricature {
+    width: 130px;
+  }
+
+  .caricature.left, .caricature.right {
+    transform: translateX(0);
+  }
+}

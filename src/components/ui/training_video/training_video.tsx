@@ -34,19 +34,23 @@ export default function TrainingVideo({ video_url }: TrainingVideoProps) {
   };
 
   return (
-    <div>
+    <div className="w-full">
       <video
         ref={videoRef}
-        src={ video_url }
+        src={video_url}
         controls
         controlsList="nodownload noremoteplayback"
         disablePictureInPicture
-        width={600}
+        style={{ height: '600px' }}
+        className="w-full h-auto rounded-lg"
         onTimeUpdate={handleTimeUpdate}
         onSeeking={handleSeeking}
         onPlay={() => { lastTime = 0; }}
       />
-      <p className="text-black">Status: {completed ? "✅ Completed" : "⏳ In Progress"}</p>
+      <p className="text-black">
+        Status: {completed ? "✅ Completed" : "⏳ In Progress"}
+      </p>
     </div>
+
   );
 }

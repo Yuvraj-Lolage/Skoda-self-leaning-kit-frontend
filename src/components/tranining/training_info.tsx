@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function TrainingModules() {
   const navigate = useNavigate();
-  const [token] = useState(() => {
+  const [token, setToken] = useState(() => {
     const storedToken = localStorage.getItem("token");
     return storedToken || null;
   });
@@ -38,7 +38,6 @@ export default function TrainingModules() {
 
   const openSubmodule = (module_id:string,subModule_id: string) =>{
     navigate(`/module/${ module_id }/submodule/${ subModule_id}`);
-    alert(`Open Submodule with ID: ${subModule_id}`);
   }
   const renderStatus = (status: string) => {
     switch (status) {
@@ -72,6 +71,8 @@ export default function TrainingModules() {
           </h4>
           <div className="grid grid-cols-1 gap-3">
             {modules.map((module, index) => (
+              module.completed = module.status === "completed",
+              module.current = module.status === "in_progress",
               module.completed = module.status === "completed",
               module.current = module.status === "in_progress",
               <div key={module.module_id} className="border rounded-xl">
@@ -151,7 +152,7 @@ export default function TrainingModules() {
                     {/* Main vertical line from module to last submodule */}
                     <div className="absolute left-9 top-0 bottom-0 w-px bg-gray-300"></div>
 
-                    {module.submodules.map((sub: any) => (
+                    {module.submodules.map((sub: any, subIndex: number) => (
                       sub.completed = sub.status === "completed",
                       sub.current = sub.status === "in_progress",
                       <div key={sub.submodule_id} className="relative flex items-start mb-4">
