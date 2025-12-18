@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../API/axios_instance';
-import ModuleIntro from '../../../intro';
+import ModuleIntro from '../../components/modules/intro';
 
 interface Module {
   id: number;
@@ -39,18 +39,7 @@ const ModuleIntroPage: React.FC = () => {
     }
   }, [id]);
 
-  const getMotivationalMessage = (moduleName: string): string => {
-    const messages: { [key: string]: string } = {
-      "Organisation Overview": "Get ready to explore the heart of Skoda's training ecosystem and understand your vital role in skill development!",
-      "Department QMS Standard Process": "Dive into the world of quality management and learn how standardized processes ensure excellence in training delivery!",
-      "Work Instructions": "Master the operational workflow of training programs and become a confident administrator of the training lifecycle!",
-      "LMS Functionality": "Unlock the power of SumTotal LMS and gain the skills to manage users, enrollments, and training events seamlessly!",
-      "Nomination Management": "Learn the art of coordinating training nominations and ensuring maximum participation across dealerships!",
-      "Reports Preparation Method": "Discover how to create impactful reports that drive business decisions and showcase training effectiveness!"
-    };
-    return messages[moduleName] || "Get ready to embark on an exciting learning journey!";
-  };
-
+  
   const handleProceed = () => {
     if (module && module.submodules.length > 0) {
       navigate(`/module/${id}/submodule/${module.submodules[0].id}`);
@@ -65,23 +54,19 @@ const ModuleIntroPage: React.FC = () => {
     return <div className="min-h-screen flex items-center justify-center text-red-500">{error || 'Module not found'}</div>;
   }
 
-  return (
-    <div className="relative">
+ return (
+    <div className="relative overflow-hidden">
+      {/* Background Blur Effect */}
+      <div className="fixed inset-0 bg-white/30 backdrop-blur-md -z-10" />
+
       <ModuleIntro
         moduleName={module.name}
-        motivationalMessage={getMotivationalMessage(String(module.name))}
         moduleId={module.id}
+        onProceed={handleProceed} // Pass navigation logic to the component
       />
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-        <button
-          onClick={handleProceed}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
-        >
-          Start Module
-        </button>
-      </div>
     </div>
   );
 };
+
 
 export default ModuleIntroPage;
