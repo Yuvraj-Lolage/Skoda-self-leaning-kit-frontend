@@ -43,9 +43,9 @@ interface SubmoduleData {
     created_at: string;
 }
 
-interface Assessment {
+ interface Assessment {
     
-}
+ }
 
 interface AssessmentData {
    assessment_id: string;
