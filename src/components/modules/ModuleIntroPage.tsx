@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../API/axios_instance';
-import ModuleIntro from '../../../intro';
+import ModuleIntro from './intro';
 
 interface Module {
   id: number;
