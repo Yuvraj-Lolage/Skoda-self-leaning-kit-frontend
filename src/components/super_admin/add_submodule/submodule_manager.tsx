@@ -1,28 +1,46 @@
 import { useEffect, useState } from "react";
-import { Module } from "../../types/module";
-import { Submodule } from "../../types/submodule";
-import { getModules } from "../../api/modules";
-import { getSubmodules } from "../../api/submodules";
-import SubmoduleList from "./SubmoduleList";
-import SubmoduleForm from "./SubmoduleForm";
+import type { Module } from "../../../types/Module";
+import type { Submodule } from "../../../types/SubModule";
+import SubmoduleList from "./submodule_list";
+import SubmoduleForm from "./submodule_forms";
+import axiosInstance from "../../../API/axios_instance";
+import { getToken } from "../../../helper/auth_token";
 
 const SubmoduleManager = () => {
+  const [token, setToken] = useState(() => getToken() || "");
   const [modules, setModules] = useState<Module[]>([]);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const [submodules, setSubmodules] = useState<Submodule[]>([]);
 
   const fetchModules = async () => {
-    const data = await getModules();
-    const sorted = data.sort((a, b) => a.order_index - b.order_index);
-    setModules(sorted);
-    if (sorted.length > 0 && !selectedModule) {
-      setSelectedModule(sorted[0].module_id);
-    }
+    await axiosInstance.get(`/module/all`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response)=>{
+      setModules(response.data);
+      if (response.data.length > 0) {
+        setSelectedModule(response.data[0].module_id);
+      }
+    })
+    .catch((error)=>{
+      console.error("Error fetching modules:", error);
+    });
   };
 
   const fetchSubmodules = async (moduleId: number) => {
-    const data = await getSubmodules(moduleId);
-    setSubmodules(data.sort((a, b) => a.order_index - b.order_index));
+    await axiosInstance.get(`/submodule/by/module/${ selectedModule }`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response)=>{
+      setSubmodules(response.data); 
+    })
+    .catch((error)=>{
+      console.error("Error fetching submodules:", error);
+    });
   };
 
   useEffect(() => {
@@ -49,7 +67,7 @@ const SubmoduleManager = () => {
         >
           {modules.map((m) => (
             <option key={m.module_id} value={m.module_id}>
-              {m.order_index}. {m.name}
+              {m.order_index}. {m.module_name}
             </option>
           ))}
         </select>

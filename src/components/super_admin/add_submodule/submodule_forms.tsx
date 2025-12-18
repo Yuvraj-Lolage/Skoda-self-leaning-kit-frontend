@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { addSubmodule } from "../../api/submodules";
-import { Submodule } from "../../types/submodule";
+import type { Submodule } from "../../../types/SubModule";
 
 interface Props {
   moduleId: number;
@@ -8,25 +7,67 @@ interface Props {
   refresh: () => void;
 }
 
+interface FileInputEvent {
+  target: {
+    files: FileList | null;
+  };
+}
+
 const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [position, setPosition] = useState(submodules.length + 1);
+  const [file, setFile] = useState<File | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] ?? null;
+    setFile(selectedFile);
+  };
+
 
   const handleSubmit = async () => {
-    await addSubmodule({
-      module_id: moduleId,
-      name,
-      description,
-      insert_position: position,
-    });
+    if (!name || !description) {
+      alert("Name and description required");
+      return;
+    }
+
+    console.log(name, description); 
+    
+    const formData = new FormData();
+    formData.append("module_id", String(moduleId));
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("insert_position", String(position));
+
+    if (file) {
+      formData.append("file", file);
+    }
+
+    console.log("file:", file);
+
+    // FormData cannot be JSON.stringified; log its entries instead
+    for (const [key, value] of formData.entries()) {
+      // If value is a File, log its name and type for readability
+      if (value instanceof File) {
+        console.log(key, { name: value.name, type: value.type, size: value.size });
+      } else {
+        console.log(key, value);
+      }
+    }
+    
+    // await fetch("http://localhost:5000/api/submodules", {
+    //   method: "POST",
+    //   body: formData,
+    // });
 
     setName("");
     setDescription("");
     setPosition(submodules.length + 1);
+    setFile(null);
 
     refresh();
   };
+
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
@@ -49,6 +90,13 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+
+        <input
+          type="file"
+          className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-600"
+          onChange={handleFileChange}
+        />
+
 
         <select
           className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-600"

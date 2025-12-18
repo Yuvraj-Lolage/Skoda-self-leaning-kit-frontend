@@ -1,4 +1,4 @@
-import { Submodule } from "../../types/submodule";
+import type { Submodule } from "../../../types/SubModule";
 
 const SubmoduleList = ({ submodules }: { submodules: Submodule[] }) => {
   return (

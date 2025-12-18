@@ -3,6 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 import axiosInstance from "../../API/axios_instance";
 import { ToastHelper } from "../ui/toast_helper/toast";
 import { Toaster } from "react-hot-toast";
+import { Helmet } from "react-helmet";
 
 export function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
@@ -37,6 +38,9 @@ export function LoginPage() {
 
     return (
         <>
+            <Helmet>
+                <title>Škode | SLK - Login</title>
+            </Helmet>
             <Toaster />
             <div className="h-screen flex w-full">
                 {/* Left Side */}
@@ -46,7 +50,7 @@ export function LoginPage() {
                             Škoda
                         </h1>
 
-                        <p className="text-slate-300" style={{ fontWeight:600, fontSize:"20px" }}>
+                        <p className="text-slate-300" style={{ fontWeight: 600, fontSize: "20px" }}>
                             Training Administrator Self Learning kit
                         </p>
 

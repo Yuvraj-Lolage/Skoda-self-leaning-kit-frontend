@@ -3,11 +3,13 @@ import Sidebar from "../ui/navigation_bar/sidebar";
 import Training_info from "../tranining/training_info";
 import Dashboard from "../dashboard/dashboard";
 import DashboardHeader from "../ui/dashboard_header/dashboard_header";
+import { Helmet } from "react-helmet";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { getTokenData } from "../../helper/auth_token";
 import WelcomeScreen from "../ui/welcome_screen/welcome_screen";
 import ModuleManager from "../super_admin/add_module/module_manager";
+import SubmoduleManager from "../super_admin/add_submodule/submodule_manager";
 
 // Simple WelcomeModal component definition
 type WelcomeModalProps = {
@@ -112,7 +114,9 @@ const Render_layout: React.FC = () => {
         return <h2 className="text-xl">⚙️ Settings Content</h2>;
       case "add-module":
         return <ModuleManager/>;
-      default:
+      case "add-submodule":
+        return <SubmoduleManager/>;
+        default:
         return <h2 className="text-xl">Welcome!</h2>;
     }
   };
@@ -135,6 +139,9 @@ const Render_layout: React.FC = () => {
 
   return (
     <>
+     <Helmet>
+        <title>Škoda Auto | SLK</title>
+      </Helmet>
       {showWelcomeModal &&
 
         <WelcomeScreen
