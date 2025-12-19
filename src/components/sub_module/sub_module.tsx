@@ -3,7 +3,7 @@ import { ArrowLeft, Share2, Play, Pause, Volume2, Settings, Maximize, ChevronDow
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../API/axios_instance";
 import TrainingVideo from "../ui/training_video/training_video";
 
@@ -60,6 +60,8 @@ interface AssessmentData {
 export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
     // const { module_id, sub_id } = useParams();
     const param = useParams();
+    const navigate = useNavigate();
+
     const [isPlaying, setIsPlaying] = useState(false);
     const [activeTab, setActiveTab] = useState("overview");
     const [currentLesson, setCurrentLesson] = useState("lesson-1-1");
@@ -272,8 +274,8 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
                                 </div>
 
                                 {/* Content always visible */}
+                               {/* Content always visible */}
                                 <div className="ml-2 mt-2 space-y-1">
-
                                     {/* { JSON.stringify(typeof assessmentData) } */}
                                     {assessmentData?.map((assessment) => (
                                         <div
@@ -281,7 +283,7 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
                                             className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-50`}
                                             onClick={() => handleLessonClick(assessment.assessment_id)}
                                         >
-                                            <div className="flex-1 min-w-0">
+                                            <div className="flex-1 min-w-0" onClick={ () => navigate(`/module/${assessment.module_id}/assessment/${assessment.assessment_id}`)   }>
                                                 <p className="text-sm truncate font-medium text-gray-900">
                                                     {assessment.title}
                                                 </p>

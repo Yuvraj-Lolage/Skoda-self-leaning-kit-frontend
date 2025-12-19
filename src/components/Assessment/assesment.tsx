@@ -2,9 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import type { Method } from "axios";
 import { useNavigate, useParams } from "react-router-dom";
+import { X, Trophy, Clock, Info } from "lucide-react"; 
 import caricature from "../../assets/caricature.jpg";
-//import caricature from "../../assets/male_caricature.jpeg";
-
 import Confetti from "react-confetti";
 
 /* -------------------- Types -------------------- */
@@ -44,7 +43,10 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
-  // API logic remains identical to your previous version...
+  // Helper to determine which caricature to show based on module number
+  const moduleNumber = parseInt(module_id || "1");
+  const instructorImg = moduleNumber % 2 === 0 ? "/assets/RYAN_2.png" : "/assets/EMMA_2.png";
+
   const apiCall = useCallback(async (method: Method, url: string, data: any = null) => {
     setError("");
     try {
@@ -133,7 +135,6 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
     return { ...base, background: "#f4f6f8", color: "#999", opacity: 0.6 };
   };
 
-  // Dynamically calculate message based on score
   const getScoreData = () => {
     const ratio = score / quiz.length;
     if (ratio >= 0.8) return { msg: "Expert Status!", sub: "You've mastered this module.", color: "#28a745" };
@@ -144,117 +145,114 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
   return (
     <div style={{ padding: 40, background: "#F4F6F8", minHeight: "100vh", fontFamily: "'Poppins', sans-serif" }}>
       <style>{`
-        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
       `}</style>
 
       <div style={{ maxWidth: 800, margin: "0 auto" }}>
-        {error && <div style={{ color: "#dc3545", textAlign: "center", padding: 15, background: "#fff", borderRadius: 8, marginBottom: 20 }}>{error}</div>}
-
-        {/* --- 1. START SCREEN (Keep UI as before) --- */}
+        
+        {/* --- 1. ASSESSMENT INTRO MODAL (Matches ModuleModal Design) --- */}
         {!hasStarted && !isFinished && (
-          <div style={{ background: "#fff", borderRadius: 16, padding: 50, textAlign: "center", boxShadow: "0 8px 30px rgba(0,0,0,0.1)" }}>
-<img
-  src={caricature}
-  alt="guide"
-  style={{
-    width: 180,
-    height: 180,
-    borderRadius: "50%",
-    border: "4px solid #ec0a0aff",
-    marginBottom: 20,
-    display: "block",
-    marginLeft: "auto",
-    marginRight: "auto",
-    animation: "float 3s infinite ease-in-out",
-  }}
-/>
-            <h1 style={{ marginBottom: 10, fontWeight: 600 }}>Start the Assessment</h1>
-            {quiz.length > 0 ? (
-              <>
-              <p style={{ color: "#666", marginBottom: 30 }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+              onClick={() => navigate(-1)}
+              style={{ animation: "fadeIn 0.3s ease-out" }}
+            ></div>
 
-                  Everything is loaded! Ready to start <strong>Module {module_id}  Assessment {assessment_id}</strong>?  <br />
+            <div
+              className="relative bg-white rounded-[32px] shadow-2xl max-w-2xl w-full overflow-hidden"
+              style={{ animation: "scaleIn 0.3s ease-out" }}
+            >
+              <button
+                onClick={() => navigate(-1)}
+                className="absolute top-4 right-4 z-50 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110"
+              >
+                <X className="w-6 h-6 text-gray-700" />
+              </button>
 
-                  You have <strong>{quiz.length}</strong> questions ahead.
-<br />
-                  Carefully read the questions and choose the best answers. <br />
-                  You would have <strong>{TIMER_DURATION} seconds</strong> for each question.
+              <div className="relative bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 p-8 pt-12">
+                <div className="flex items-end justify-center">
+                  <div className="relative w-full">
+                    <div className="bg-[#2d2d2d] rounded-2xl p-8 shadow-2xl border-[6px] border-[#b8860b] min-h-[260px] relative">
+                      
+                      <img
+                        src={instructorImg}
+                        onError={(e) => { (e.target as HTMLImageElement).src = caricature; }}
+                        alt="Instructor"
+                        className="absolute -left-16 -bottom-6 w-56 h-auto z-20 drop-shadow-xl object-contain"
+                        style={{ animation: "float 3s infinite ease-in-out" }}
+                      />
 
-                </p>
-                <button onClick={() => setHasStarted(true)} style={{ padding: "15px 40px", borderRadius: 12, border: "none", background: "linear-gradient(90deg, #d62569, #ea5205)", color: "#fff", fontWeight: 700, cursor: "pointer" }}>🚀 Start Quiz</button>
-              </>
-            ) : (
-              <button onClick={loadQuiz} disabled={isLoading} style={{ padding: "15px 40px", borderRadius: 12, border: "none", background: "#333", color: "#fff", cursor: "pointer" }}>{isLoading ? "Loading..." : "Load Questions"}</button>
-            )}
-          </div>
-        )}
+                      <div className="relative z-10 ml-32 space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-orange-500 text-white font-bold px-3 py-1 rounded-lg text-sm">
+                            ASSESSMENT {module_id}
+                          </div>
+                          <div className="flex-1 h-px bg-white/20"></div>
+                        </div>
 
-        {/* --- 2. BEAUTIFUL DYNAMIC SCORE SECTION --- */}
-        {isFinished && (
-          <div style={{ animation: "popIn 0.5s ease-out forwards" }}>
-              <Confetti numberOfPieces={score * 50} recycle={false} />
-            <div style={{ background: "#0b0b0bff", borderRadius: 24, padding: "40px", textAlign: "center", boxShadow: "0 20px 40px rgba(0,0,0,0.12)", position: "relative", overflow: "hidden" }}>
-              
-              {/* Background Accent Decor */}
-              <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, background: "rgba(234, 82, 5, 0.05)", borderRadius: "50%" }} />
-              
-              <img
-                  src={caricature}
-                  alt="guide"
-                  style={{
-                    width: 180,
-                    height: 180,
-                    borderRadius: "50%",
-                    border: "4px solid #f38005ff",
-                    marginBottom: 20,
-                    display: "block",
-                    marginLeft: "auto",
-                    marginRight: "auto",
-                    animation: "float 3s infinite ease-in-out",
-                  }}
-                    />
-              
-              <h2 style={{ fontSize: "2.2rem", fontWeight: 800, margin: "20px 0 5px", color: "#fbf5f5ff" }}>{getScoreData().msg}</h2>
-              <p style={{ color: "#fcfafaff", fontSize: "1.1rem", marginBottom: 30 }}>{getScoreData().sub}</p>
+                        <h3 className="text-white font-extrabold text-2xl uppercase tracking-tight leading-tight">
+                           Knowledge Check
+                        </h3>
 
-              {/* Progress Container */}
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "40px", marginBottom: 40, flexWrap: "wrap" }}>
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "3.5rem", fontWeight: 900, color: getScoreData().color }}>{score} / {quiz.length}</div>
-                  <div style={{ fontSize: "0.9rem", color: "#efeaeaff", textTransform: "uppercase", letterSpacing: 1 }}>Correct Answers</div>
-                </div>
-                
-                <div style={{ height: 60, width: 2, background: "#fef7f7ff" }} className="divider" />
+                        <div className="flex gap-4 text-xs font-semibold text-gray-300 uppercase tracking-widest">
+                          <span className="flex items-center gap-1.5">
+                            <Trophy className="w-4 h-4 text-yellow-500" />
+                            {quiz.length || "..."} Questions
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-4 h-4 text-blue-400" />
+                            {TIMER_DURATION}s per Q
+                          </span>
+                        </div>
 
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "3.5rem", fontWeight: 900, color: "#f1eaeaff" }}>{((score/quiz.length)*100).toFixed(0)}%</div>
-                  <div style={{ fontSize: "0.9rem", color: "#f1ececff", textTransform: "uppercase", letterSpacing: 1 }}>Final Accuracy</div>
+                        <button
+                          onClick={() => quiz.length > 0 && setHasStarted(true)}
+                          disabled={isLoading || quiz.length === 0}
+                          className="mt-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-10 py-3 rounded-full font-black text-sm uppercase shadow-lg hover:scale-105 transition-transform active:scale-95 disabled:opacity-50"
+                        >
+                          {isLoading ? "Loading..." : "Start Assessment"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
-                <button 
-                  onClick={() => window.location.reload()} 
-                  style={{ padding: "14px 30px", borderRadius: 12, border: "none", background: "#f0f0f0", color: "#333", fontWeight: 700, cursor: "pointer", transition: "0.2s" }}
-                  onMouseOver={(e) => e.currentTarget.style.background = "#e5e5e5"}
-                  onMouseOut={(e) => e.currentTarget.style.background = "#f0f0f0"}
-                >
-                  🔁 Try Again
-                </button>
-                <button 
-                  onClick={() => navigate("/")} 
-                  style={{ padding: "14px 30px", borderRadius: 12, border: "none", background: "linear-gradient(90deg, #d62569, #ea5205)", color: "#fff", fontWeight: 700, cursor: "pointer", boxShadow: "0 10px 20px rgba(214, 37, 105, 0.2)" }}
-                >
-                  🏠 Back to Home
-                </button>
+              <div className="p-8 space-y-6">
+                <div className="flex items-start gap-4 p-5 bg-blue-50 rounded-2xl border border-blue-100">
+                  <div className="bg-blue-500 text-white p-2 rounded-full flex-shrink-0">
+                    <Info className="w-4 h-4" />
+                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    You're about to start the assessment for <span className="font-bold text-gray-900">Module {module_id}</span>. Once you click start, the first question will appear immediately.
+                  </p>
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl font-bold transition-colors uppercase text-sm tracking-wider"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => quiz.length > 0 && setHasStarted(true)}
+                    disabled={isLoading || quiz.length === 0}
+                    className="flex-1 py-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-2xl font-black shadow-xl hover:opacity-90 transition-opacity uppercase text-sm tracking-wider disabled:opacity-50"
+                  >
+                    Start Assessment
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* --- 3. QUIZ SCREEN (Keep UI as before) --- */}
+        {/* --- 2. ACTIVE QUIZ SECTION --- */}
         {hasStarted && !isFinished && quiz.length > 0 && (
           <div style={{ background: "#fff", borderRadius: 16, padding: 30, boxShadow: "0 8px 20px rgba(0,0,0,0.1)" }}>
              <div style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", color: "#666" }}>
@@ -274,27 +272,44 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                <button onClick={handlePrevious} disabled={currentIndex === 0 || showFeedback} style={{ padding: "10px 25px", borderRadius: 8, border: "1px solid #ddd", background: "#fff", cursor: "pointer", opacity: currentIndex === 0 ? 0.5 : 1 }}>⬅ Previous</button>
                <button onClick={handleNext} disabled={showFeedback} style={{ padding: "10px 25px", borderRadius: 8, border: "none", background: "#007bff", color: "#fff", cursor: "pointer" }}>{currentIndex === quiz.length - 1 ? "Finish Check 🏁" : "Next ➡"}</button>
              </div>
-{/* FLOATING GUIDE */}
-
-      <div style={{ position: "fixed", bottom: 20, right: 90, display: "flex", alignItems: "center", gap: 10 }}>
-
-        <div style={{ background: "#fff", padding: "10px 20px", borderRadius: 15, boxShadow: "0 4px 10px rgba(0,0,0,0.1)", fontSize: 14 }}>
-
-          {showFeedback ? "Verifying... 🔍" : (timer < 4 ? "Quick! ⏳" : "Think carefully! 💡")}
-
-        </div>
-
-        <img src={caricature} style={{ width: 50, height: 50, borderRadius: "50%", border: "2px solid #fff" }} alt="guide" />
-
-      </div>
-
+             <div style={{ position: "fixed", bottom: 20, right: 90, display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ background: "#fff", padding: "10px 20px", borderRadius: 15, boxShadow: "0 4px 10px rgba(0,0,0,0.1)", fontSize: 14 }}>
+                  {showFeedback ? "Verifying... 🔍" : (timer < 4 ? "Quick! ⏳" : "Think carefully! 💡")}
+                </div>
+                <img src={caricature} style={{ width: 50, height: 50, borderRadius: "50%", border: "2px solid #fff", objectFit: "cover" }} alt="guide" />
+             </div>
           </div>
+        )}
+
+        {/* --- 3. SCORE SECTION --- */}
+        {isFinished && (
+           <div style={{ animation: "popIn 0.5s ease-out forwards" }}>
+              <Confetti numberOfPieces={score * 50} recycle={false} />
+              <div style={{ background: "#0b0b0bff", borderRadius: 24, padding: "40px", textAlign: "center", boxShadow: "0 20px 40px rgba(0,0,0,0.12)", position: "relative", overflow: "hidden" }}>
+                <img src={caricature} alt="guide" style={{ width: 180, height: 180, borderRadius: "50%", border: "4px solid #f38005ff", marginBottom: 20, display: "block", marginLeft: "auto", marginRight: "auto", animation: "float 3s infinite ease-in-out", objectFit: "cover" }} />
+                <h2 style={{ fontSize: "2.2rem", fontWeight: 800, margin: "20px 0 5px", color: "#fbf5f5ff" }}>{getScoreData().msg}</h2>
+                <p style={{ color: "#fcfafaff", fontSize: "1.1rem", marginBottom: 30 }}>{getScoreData().sub}</p>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "40px", marginBottom: 40, flexWrap: "wrap" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "3.5rem", fontWeight: 900, color: getScoreData().color }}>{score} / {quiz.length}</div>
+                    <div style={{ fontSize: "0.9rem", color: "#efeaeaff", textTransform: "uppercase", letterSpacing: 1 }}>Correct Answers</div>
+                  </div>
+                  <div style={{ height: 60, width: 2, background: "#fef7f7ff" }} />
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "3.5rem", fontWeight: 900, color: "#f1eaeaff" }}>{((score/quiz.length)*100).toFixed(0)}%</div>
+                    <div style={{ fontSize: "0.9rem", color: "#f1ececff", textTransform: "uppercase", letterSpacing: 1 }}>Final Accuracy</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
+                  <button onClick={() => window.location.reload()} style={{ padding: "14px 30px", borderRadius: 12, border: "none", background: "#f0f0f0", color: "#333", fontWeight: 700, cursor: "pointer" }}>🔁 Try Again</button>
+                  <button onClick={() => navigate("/")} style={{ padding: "14px 30px", borderRadius: 12, border: "none", background: "linear-gradient(90deg, #d62569, #ea5205)", color: "#fff", fontWeight: 700, cursor: "pointer" }}>🏠 Back to Home</button>
+                </div>
+              </div>
+           </div>
         )}
       </div>
 
-       
-
-      {/* RIGHT SIDE DOT NAVIGATION (Only during quiz) */}
+      {/* RIGHT SIDE DOT NAVIGATION */}
       {hasStarted && !isFinished && (
         <div style={{ position: "fixed", top: 0, right: 0, height: "100vh", width: 70, background: "#fff", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 40, boxShadow: "-2px 0 10px rgba(0,0,0,0.05)" }}>
           {quiz.map((_, idx) => (
