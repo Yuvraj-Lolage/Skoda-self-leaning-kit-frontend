@@ -10,6 +10,7 @@ import { getTokenData } from "../../helper/auth_token";
 import WelcomeScreen from "../ui/welcome_screen/welcome_screen";
 import ModuleManager from "../super_admin/add_module/module_manager";
 import SubmoduleManager from "../super_admin/add_submodule/submodule_manager";
+import { useNavigate } from "react-router-dom";
 
 // Simple WelcomeModal component definition
 type WelcomeModalProps = {
@@ -41,6 +42,8 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onStartTour, onSkip }) => (
 );
 
 const Render_layout: React.FC = () => {
+
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showWelcome, setShowWelcome] = useState(false);
   const [token, setToken] = useState<string | null>(() => {
@@ -113,10 +116,13 @@ const Render_layout: React.FC = () => {
       case "settings":
         return <h2 className="text-xl">⚙️ Settings Content</h2>;
       case "add-module":
-        return <ModuleManager/>;
+        return <ModuleManager />;
       case "add-submodule":
-        return <SubmoduleManager/>;
-        default:
+        return <SubmoduleManager />;
+      case "view-progress":
+        navigate("/admin/view-progress");
+        break;
+      default:
         return <h2 className="text-xl">Welcome!</h2>;
     }
   };
@@ -139,7 +145,7 @@ const Render_layout: React.FC = () => {
 
   return (
     <>
-     <Helmet>
+      <Helmet>
         <title>Škoda Auto | SLK</title>
       </Helmet>
       {showWelcomeModal &&

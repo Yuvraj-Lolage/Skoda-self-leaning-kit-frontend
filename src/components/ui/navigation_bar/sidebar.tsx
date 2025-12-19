@@ -33,7 +33,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     { icon: FolderPlus, label: "Add Module", id:"add-module", url:"add-module" },
     { icon: FilePlus, label: "Add SubModule", id:"add-submodule", url:"add-submodule" },
     { icon: ClipboardList, label: "Add Quiz", id:"" },
-    { icon: BarChart3, label: "View Progress", id:"" },
+    { icon: BarChart3, label: "View Progress", id:"view-progress", url:"view-progress" },
   ];
 
   useEffect(() => {
@@ -54,7 +54,9 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     <div className="w-64 text-white flex flex-col bg-[#1b1b1b] h-screen fixed left-0 top-0">
       {/* Logo */}
       <div className="py-6 px-3 border-b border-white/10">
-        <h2 className="text-center text-4xl font-medium">Škoda</h2>
+        <h2 className="text-center text-1xl font-medium">
+          Volkswagen Group Academy - VG/3
+        </h2>
       </div>
 
       {/* Navigation */}

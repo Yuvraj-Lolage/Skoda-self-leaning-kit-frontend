@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import { Toaster } from "react-hot-toast";
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { LoginPage } from './components/login/login';
 import Training_info from './components/tranining/training_info';
 import Render_layout from './components/render_layout/render_layout';
@@ -10,13 +10,14 @@ import ModuleManager from './components/super_admin/add_module/module_manager';
 import { Helmet } from 'react-helmet';
 import SubmoduleManager from './components/super_admin/add_submodule/submodule_manager';
 import Assessment from './components/Assessment/assesment';
+import { AdminProgressPage } from './components/super_admin/view_progress/admin_progress';
 function App() {
+  const navigate = useNavigate();
   const [token, setToken] = useState(() => {
     const storedToken = localStorage.getItem("token");
     return storedToken || null;
   });
   const [showWelcome, setShowWelcome] = useState<boolean>(false);
-
   return (
     <>
       <Helmet>
@@ -55,6 +56,11 @@ function App() {
         <Route
           path="/module/:module_id/assessment/:assessment_id"
           element={token ? <Assessment onLogout={() => setToken('null')}/> : <Navigate to="/login" /> }
+        />
+
+      <Route
+          path="/admin/view-progress"
+          element={token ? <AdminProgressPage onBackClick={ () =>{ navigate("/") } } /> : <Navigate to="/login" /> }
         />
       </Routes>
       

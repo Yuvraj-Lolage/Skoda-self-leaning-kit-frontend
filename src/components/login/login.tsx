@@ -47,7 +47,7 @@ export function LoginPage() {
                 <div className="hidden lg:flex h-full w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white items-center justify-center p-12 relative overflow-hidden">
                     <div className="relative z-10 max-w-lg text-center space-y-6">
                         <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">
-                            Škoda
+                            Volkswagen Group Academy - VG/3
                         </h1>
 
                         <p className="text-slate-300" style={{ fontWeight: 600, fontSize: "20px" }}>
@@ -64,17 +64,17 @@ export function LoginPage() {
                         </div>
 
                         <h2 className="text-2xl font-semibold">
-                            Empower Your Administrative Excellence
+                            Learn and Excel !!
                         </h2>
 
-                        <p className="text-slate-300 leading-relaxed">
+                        {/* <p className="text-slate-300 leading-relaxed">
                             Strengthen your operational capabilities, streamline processes, and build proficiency
                             across Škoda’s key administrative systems through structured modules, practical tasks,
                             and real-time progress insights.
-                        </p>
+                        </p> */}
 
                         {/* Corporate Feature List */}
-                        <div className="grid grid-cols-2 gap-4 text-sm text-left">
+                        {/* <div className="grid grid-cols-2 gap-4 text-sm text-left">
                             {[
                                 "Process Excellence",
                                 "Operational Efficiency",
@@ -86,7 +86,7 @@ export function LoginPage() {
                                     <span>{feature}</span>
                                 </div>
                             ))}
-                        </div>
+                        </div> */}
                     </div>
 
 
@@ -102,10 +102,10 @@ export function LoginPage() {
                         {/* Header */}
                         <div className="text-center mb-8">
                             <h2 className="text-5xl font-bold mb-2">
-                                Welcome back
+                                Welcome
                             </h2>
                             <p className="text-lg ">
-                                Sign in to your account to continue learning
+                                Sign in to your account
                             </p>
                         </div>
 
