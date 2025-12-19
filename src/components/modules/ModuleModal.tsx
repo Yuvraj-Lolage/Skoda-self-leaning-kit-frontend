@@ -1,4 +1,6 @@
 import React from "react";
+import male_caricature from "../../assets/RYAN_2.png";
+import female_caricature from "../../assets/EMMA_2.png";
 
 interface ModuleModalProps {
   isOpen: boolean;
@@ -55,7 +57,7 @@ export function ModuleModal({
                 {/* Character Image (Absolute Positioned) */}
                 {/* Note: Ensure these assets are in your public folder or src/assets */}
                 <img
-                  src={moduleNumber % 2 === 0 ? "/assests/RYAN_2.png" : "/assets/EMMA_2.png"}
+                  src={moduleNumber % 2 === 0 ? male_caricature : female_caricature }
                   alt="Instructor"
                   className="absolute -left-16 -bottom-6 w-56 h-auto z-20 drop-shadow-xl object-contain"
                 />

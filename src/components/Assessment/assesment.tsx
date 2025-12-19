@@ -4,6 +4,8 @@ import type { Method } from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { X, Trophy, Clock, Info } from "lucide-react"; 
 import caricature from "../../assets/caricature.jpg";
+import male_caricature from "../../assets/RYAN_2.png";
+import female_caricature from "../../assets/EMMA_2.png";
 import Confetti from "react-confetti";
 
 /* -------------------- Types -------------------- */
@@ -179,7 +181,7 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                     <div className="bg-[#2d2d2d] rounded-2xl p-8 shadow-2xl border-[6px] border-[#b8860b] min-h-[260px] relative">
                       
                       <img
-                        src={instructorImg}
+                        src={female_caricature}
                         onError={(e) => { (e.target as HTMLImageElement).src = caricature; }}
                         alt="Instructor"
                         className="absolute -left-16 -bottom-6 w-56 h-auto z-20 drop-shadow-xl object-contain"
@@ -276,7 +278,7 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                 <div style={{ background: "#fff", padding: "10px 20px", borderRadius: 15, boxShadow: "0 4px 10px rgba(0,0,0,0.1)", fontSize: 14 }}>
                   {showFeedback ? "Verifying... 🔍" : (timer < 4 ? "Quick! ⏳" : "Think carefully! 💡")}
                 </div>
-                <img src={caricature} style={{ width: 50, height: 50, borderRadius: "50%", border: "2px solid #fff", objectFit: "cover" }} alt="guide" />
+                <img src={male_caricature} style={{ width: 120, height: 120, borderRadius: "0%", objectFit: "cover" }} alt="guide" />
              </div>
           </div>
         )}
