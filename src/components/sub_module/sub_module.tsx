@@ -157,12 +157,9 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
                 <div className="flex items-center justify-between">
                     {/* Left: Logo */}
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost" size="sm" onClick={onBackClick}>
+                        <Button variant="ghost" size="sm" onClick={()=>{ navigate('/') }}>
                             <ArrowLeft className="w-4 h-4" />
                         </Button>
-                        <div className="text-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                            Academyis
-                        </div>
                     </div>
 
                     {/* Center: Course Title */}

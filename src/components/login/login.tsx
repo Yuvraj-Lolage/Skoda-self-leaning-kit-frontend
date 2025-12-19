@@ -80,31 +80,31 @@ export function LoginPage() {
             />
         </div> */}
 
-        <h2 className="text-2xl font-semibold">
-            Empower Your Administrative Excellence
-        </h2>
+                        <h2 className="text-2xl font-semibold">
+                            Learn and Excel !!
+                        </h2>
 
-        {/* <p className="text-slate-300 leading-relaxed">
-            Strengthen your operational capabilities, streamline processes, and build proficiency
-            across Škoda’s key administrative systems through structured modules, practical tasks,
-            and real-time progress insights.
-        </p> */}
+                        {/* <p className="text-slate-300 leading-relaxed">
+                            Strengthen your operational capabilities, streamline processes, and build proficiency
+                            across Škoda’s key administrative systems through structured modules, practical tasks,
+                            and real-time progress insights.
+                        </p> */}
 
-        {/* Corporate Feature List */}
-        {/* <div className="grid grid-cols-2 gap-4 text-sm text-left">
-            {[
-                "Process Excellence",
-                "Operational Efficiency",
-                "Compliance & Standards",
-                "Digital System Proficiency"
-            ].map((feature, i) => (
-                <div key={i} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full"></div>
-                    <span>{feature}</span>
-                </div>
-            ))}
-        </div> */}
-    </div>
+                        {/* Corporate Feature List */}
+                        {/* <div className="grid grid-cols-2 gap-4 text-sm text-left">
+                            {[
+                                "Process Excellence",
+                                "Operational Efficiency",
+                                "Compliance & Standards",
+                                "Digital System Proficiency"
+                            ].map((feature, i) => (
+                                <div key={i} className="flex items-center space-x-2">
+                                    <div className="w-2 h-2 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full"></div>
+                                    <span>{feature}</span>
+                                </div>
+                            ))}
+                        </div> */}
+                    </div>
 
     {/* Decorative Circles (Optional: kept for extra depth) */}
     <div className="absolute top-20 left-20 w-20 h-20 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full opacity-20 blur-xl z-2"></div>
@@ -118,10 +118,10 @@ export function LoginPage() {
                         {/* Header */}
                         <div className="text-center mb-8">
                             <h2 className="text-5xl font-bold mb-2">
-                                Welcome 
+                                Welcome
                             </h2>
                             <p className="text-lg ">
-                                Sign in to your account 
+                                Sign in to your account
                             </p>
                         </div>
 
