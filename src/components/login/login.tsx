@@ -4,6 +4,8 @@ import axiosInstance from "../../API/axios_instance";
 import { ToastHelper } from "../ui/toast_helper/toast";
 import { Toaster } from "react-hot-toast";
 import { Helmet } from "react-helmet";
+import login_vdo from '../../assets/login_vdo.mp4';
+
 
 export function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
@@ -44,24 +46,39 @@ export function LoginPage() {
             <Toaster />
             <div className="h-screen flex w-full">
                 {/* Left Side */}
-                <div className="hidden lg:flex h-full w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white items-center justify-center p-12 relative overflow-hidden">
-                    <div className="relative z-10 max-w-lg text-center space-y-6">
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">
-                            Volkswagen Group Academy - VG/3
-                        </h1>
+                <div className="hidden lg:flex h-full w-full text-white items-center justify-center p-12 relative overflow-hidden">
+    {/* Video Background */}
+    <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+    >
+        <source src={login_vdo} type="video/mp4" />
+        Your browser does not support the video tag.
+    </video>
 
-                        <p className="text-slate-300" style={{ fontWeight: 600, fontSize: "20px" }}>
-                            Training Administrator Self Learning kit
-                        </p>
+    {/* Dark Overlay to ensure text readability */}
+    {/* <div className="absolute top-0 left-0 w-full h-full bg-slate-900/60 z-1"></div> */}
 
-                        {/* Preview Section */}
-                        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                            <img
-                                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.1.0&q=80&w=1080"
-                                alt="Training Dashboard Preview"
-                                className="w-full h-48 object-cover rounded-lg opacity-80"
-                            />
-                        </div>
+    <div className="relative z-10 max-w-lg text-center space-y-6">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-pink-400 bg-clip-text text-transparent">
+            Volkswagen Group Academy-VG/3
+        </h1>
+
+        <p className="text-slate-300" style={{ fontWeight: 600, fontSize: "20px" }}>
+            Training Administrator Self Learning kit
+        </p>
+
+        {/* Preview Section */}
+        {/* <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+            <img
+                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.1.0&q=80&w=1080"
+                alt="Training Dashboard Preview"
+                className="w-full h-48 object-cover rounded-lg opacity-80"
+            />
+        </div> */}
 
                         <h2 className="text-2xl font-semibold">
                             Learn and Excel !!
@@ -89,11 +106,10 @@ export function LoginPage() {
                         </div> */}
                     </div>
 
-
-                    {/* Decorative Circles */}
-                    <div className="absolute top-20 left-20 w-20 h-20 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full opacity-20 blur-xl"></div>
-                    <div className="absolute bottom-20 right-20 w-32 h-32 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full opacity-20 blur-xl"></div>
-                </div>
+    {/* Decorative Circles (Optional: kept for extra depth) */}
+    <div className="absolute top-20 left-20 w-20 h-20 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full opacity-20 blur-xl z-2"></div>
+    <div className="absolute bottom-20 right-20 w-32 h-32 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full opacity-20 blur-xl z-2"></div>
+</div>
 
                 {/* Right Side - Form */}
                 <div className="flex flex-col items-center justify-center px-6 lg:px-12 h-full w-full mx-auto   ">
