@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { Submodule } from "../../../types/SubModule";
 import axiosInstance from "../../../API/axios_instance";
 import axios from "axios";
+import { ToastHelper } from "../../ui/toast_helper/toast";
+import { Toaster } from "react-hot-toast";
 
 interface Props {
   moduleId: number;
@@ -14,8 +16,8 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
   const [description, setDescription] = useState("");
   const [position, setPosition] = useState(submodules.length + 1);
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // ================= FILE CHANGE =================
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] ?? null;
 
@@ -29,10 +31,12 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
     console.log("Selected file:", selectedFile);
   };
 
-  // ================= SUBMIT =================
+
   const handleSubmit = async () => {
+    setLoading(true);
     if (!name || !description) {
-      alert("Name and description required");
+      ToastHelper.error("Name and Description are required");
+      setLoading(false);
       return;
     }
 
@@ -65,17 +69,6 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
     }
 
     try {
-      // const response = await axiosInstance.post(
-      //   "/submodule/create",
-      //   formData,
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${localStorage.getItem("token")}`,
-      //       // ❌ DO NOT set Content-Type
-      //     }
-      //   }
-      // );
-
       const response = await axios.post(
         "http://localhost:3000/submodule/create",
         formData,
@@ -85,7 +78,7 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
           }
         }
       );
-      console.log("✅ Submodule created:", response.data);
+      ToastHelper.success("Submodule created successfully!");
 
       // reset form
       setName("");
@@ -97,11 +90,14 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
     } catch (error: any) {
       console.error("❌ Error creating submodule:", error?.response || error);
       alert(error?.response?.data?.message || "Failed to create submodule");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+       <Toaster />
       <h2 className="text-xl font-semibold text-gray-800 mb-4">
         Add New Submodule
       </h2>
@@ -145,8 +141,32 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
         <button
           onClick={handleSubmit}
           className="w-full py-3 text-white rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg hover:opacity-90"
+          disabled={loading}
         >
-          Add Submodule
+          {loading ? (
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4l-3 3 3 3h-4z"
+              ></path>
+            </svg>
+          ) : (
+            "Add Submodule"
+          )}
         </button>
       </div>
     </div>
