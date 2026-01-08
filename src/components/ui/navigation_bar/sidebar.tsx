@@ -22,26 +22,27 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   const [navigationItems, setNavigationItems] = useState<any[]>([]);
 
   const userItems = [
-    { icon: LayoutDashboard, label: "dashboard", id: "sidebar-dashboard", url:"dashdoard" },
-    { icon: BookOpen, label: "training", id: "sidebar-modules", url:"training" },
-    { icon: MessageCircle, label: "chats", id: "sidebar-profile" },
-    { icon: GraduationCap, label: "grades", id: "sidebar-grades" },
-    { icon: Settings, label: "settings", id: "sidebar-settings" },
+    { icon: LayoutDashboard, label: "Dashboard", key: "dashboard", id: "sidebar-dashboard" },
+    { icon: BookOpen, label: "Training", key: "training", id: "sidebar-modules" },
+    { icon: GraduationCap, label: "View Progress", key: "view-progress", id: "sidebar-view-progress" },
+    { icon: Settings, label: "Help", key: "help", id: "sidebar-help" },
   ];
 
   const adminItems = [
-    { icon: FolderPlus, label: "Add Module", id:"add-module", url:"add-module" },
-    { icon: FilePlus, label: "Add SubModule", id:"add-submodule", url:"add-submodule" },
-    { icon: ClipboardList, label: "Add Quiz", id:"" },
-    { icon: BarChart3, label: "View Progress", id:"view-progress", url:"view-progress" },
+    { icon: LayoutDashboard, label: "Dashboard", key: "dashboard", id: "sidebar-dashboard" },
+    { icon: FolderPlus, label: "Add Module", key: "add-module", id: "add-module" },
+    { icon: FilePlus, label: "Add SubModule", key: "add-submodule", id: "add-submodule" },
+    { icon: ClipboardList, label: "Add Quiz", key: "add-quiz", id: "add-quiz" },
+    { icon: BarChart3, label: "View Progress", key: "view-progress", id: "view-progress" },
   ];
+
 
   useEffect(() => {
     function dynamicNavigationMenu() {
       const userData = getTokenData();
       if (userData && userData.role === "Admin") {
         setNavigationItems(adminItems)
-      }else{
+      } else {
         setNavigationItems(userItems)
       }
     }
@@ -64,25 +65,23 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         <ul className="space-y-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;
-            const active = activeTab === item.label;
+            const active = activeTab === item.key;
             return (
-              <li key={item.label} id={item.id}>
+              <li key={item.key} id={item.id}>
                 <button
-                  onClick={() => setActiveTab(item.url)}
+                  onClick={() => setActiveTab(item.key)}
                   className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-colors duration-200 ${active
                       ? "bg-gradient-to-r from-pink-500 to-orange-500 text-white"
                       : "text-gray-400 hover:text-white hover:bg-white/10"
                     }`}
                 >
-                  <Icon
-                    className={`w-5 h-5 ${active ? "text-white" : "text-gray-400"
-                      }`}
-                  />
-                  <span className="capitalize">{item.label}</span>
+                  <Icon className={`w-5 h-5 ${active ? "text-white" : "text-gray-400"}`} />
+                  <span>{item.label}</span>
                 </button>
               </li>
             );
           })}
+
         </ul>
         {/* Admin Section */}
         {/* <div className="mb-2 px-4 text-xs text-gray-500 uppercase tracking-wider">

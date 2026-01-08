@@ -10,7 +10,9 @@ import { getTokenData } from "../../helper/auth_token";
 import WelcomeScreen from "../ui/welcome_screen/welcome_screen";
 import ModuleManager from "../super_admin/add_module/module_manager";
 import SubmoduleManager from "../super_admin/add_submodule/submodule_manager";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { AdminProgressPage } from "../super_admin/view_progress/admin_progress";
+
 
 // Simple WelcomeModal component definition
 type WelcomeModalProps = {
@@ -44,6 +46,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onStartTour, onSkip }) => (
 const Render_layout: React.FC = () => {
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showWelcome, setShowWelcome] = useState(false);
   const [token, setToken] = useState<string | null>(() => {
@@ -88,6 +91,15 @@ const Render_layout: React.FC = () => {
   };
 
   useEffect(() => {
+    const path = location.pathname;
+
+    if (path.includes("add-module")) setActiveTab("add-module");
+    else if (path.includes("add-submodule")) setActiveTab("add-submodule");
+    else if (path.includes("view-progress")) setActiveTab("view-progress");
+    else setActiveTab("dashboard");
+  }, [location.pathname]);
+
+  useEffect(() => {
     if (token) {
       setTokenData(getTokenData());
     }
@@ -103,29 +115,54 @@ const Render_layout: React.FC = () => {
 
   }, [tokenData]);
   // Render content based on active tab
+  // const renderContent = () => {
+  //   switch (activeTab) {
+  //     case "dashboard":
+  //       return <Dashboard />;
+  //     case "training":
+  //       return <Training_info />;
+  //     case "settings":
+  //       return <h2 className="text-xl">⚙️ Settings Content</h2>;
+  //     case "add-module":
+  //       return <ModuleManager />;
+  //     case "add-submodule":
+  //       return <SubmoduleManager />;
+  //     case "view-progress":
+  //       <AdminProgressPage onBackClick={ () =>{ navigate("/") } } />
+  //       break;
+  //     default:
+  //       return <Dashboard/>;
+  //   }
+  // };
+
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
         return <Dashboard />;
+
       case "training":
         return <Training_info />;
-      case "chats":
-        return <h2 className="text-xl">💬 Chats Content</h2>;
-      case "grades":
-        return <h2 className="text-xl">🎓 Grades Content</h2>;
+
       case "settings":
         return <h2 className="text-xl">⚙️ Settings Content</h2>;
+
       case "add-module":
         return <ModuleManager />;
+
       case "add-submodule":
         return <SubmoduleManager />;
+
       case "view-progress":
-        navigate("/admin/view-progress");
-        break;
+        return (
+          <AdminProgressPage
+            onBackClick={() => navigate("/")}
+          />
+        );
       default:
-        return <h2 className="text-xl">Welcome!</h2>;
+        return <Dashboard />;
     }
   };
+
 
   const handleCloseWelcome = async () => {
     try {

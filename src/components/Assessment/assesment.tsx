@@ -4,6 +4,8 @@ import type { Method } from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { X, Trophy, Clock, Info, CheckCircle2, Timer, Circle } from "lucide-react"; 
 import caricature from "../../assets/caricature.jpg";
+import male_caricature from "../../assets/RYAN_2.png";
+import female_caricature from "../../assets/EMMA_2.png";
 import Confetti from "react-confetti";
 
 /* -------------------- Types -------------------- */
@@ -222,7 +224,15 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                 <div className="flex items-end justify-center">
                   <div className="relative w-full">
                     <div className="bg-[#2d2d2d] rounded-2xl p-8 shadow-2xl border-[6px] border-[#b8860b] min-h-[260px] relative">
-                      <img src={instructorImg} onError={(e) => { (e.target as HTMLImageElement).src = caricature; }} alt="Instructor" className="absolute -left-16 -bottom-6 w-56 h-auto z-20 drop-shadow-xl object-contain" style={{ animation: "float 3s infinite ease-in-out" }} />
+                      
+                      <img
+                        src={female_caricature}
+                        onError={(e) => { (e.target as HTMLImageElement).src = caricature; }}
+                        alt="Instructor"
+                        className="absolute -left-16 -bottom-6 w-56 h-auto z-20 drop-shadow-xl object-contain"
+                        style={{ animation: "float 3s infinite ease-in-out" }}
+                      />
+
                       <div className="relative z-10 ml-32 space-y-4">
                         <div className="flex items-center gap-3">
                           <div className="bg-orange-500 text-white font-bold px-3 py-1 rounded-lg text-sm">ASSESSMENT {assessment_id}</div>
@@ -331,6 +341,7 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                    <div style={{ position: "absolute", top: -5, right: -5, width: 15, height: 15, background: "#28a745", borderRadius: "50%", border: "2px solid #fff" }}></div>
                    <img src={instructorImg} onError={(e) => { (e.target as HTMLImageElement).src = caricature; }} style={{ width: 70, height: 70, borderRadius: "50%", border: "3px solid #f38005", objectFit: "cover", background: "#fff", animation: "float 3s infinite ease-in-out" }} alt="guide" />
                 </div>
+                <img src={male_caricature} style={{ width: 120, height: 120, borderRadius: "0%", objectFit: "cover" }} alt="guide" />
              </div>
           </div>
         )}

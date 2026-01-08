@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { CheckCircle, Play, ChevronDown, ChevronUp, Info } from "lucide-react"; // Added Info icon
 import axiosInstance from "../../API/axios_instance";
 import { useNavigate } from "react-router-dom";
-import { ModuleModal } from "../modules/ModuleModal"; 
+import { ModuleModal } from "../modules/ModuleModal";
+import TrainingAnalysis from "../ui/training_analysis";
+import { getTokenData } from "../../helper/auth_token";
 
 export default function TrainingModules() {
   const navigate = useNavigate();
@@ -12,10 +14,23 @@ export default function TrainingModules() {
   });
   const [modules, setModules] = useState<any[] | null>(null);
   const [openModuleId, setOpenModuleId] = useState<number | null>(null);
-
-  // --- Modal State ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState<any>(null);
+  const [userData, setUserData] = useState<any>();
+
+
+  const [completedModulesCount, setCompletedModulesCount] = useState(0);
+
+  useEffect(() => {
+    async function getUserData() {
+      const data = await getTokenData();
+      if (data) {
+        setUserData(data);
+      }
+    }
+
+    getUserData();
+  }, [])
 
   const loadModules = async () => {
     try {
@@ -67,6 +82,7 @@ export default function TrainingModules() {
 
   return (
     <div className="bg-white rounded-2xl shadow border border-gray-200">
+      <TrainingAnalysis userName={ userData?.name } totalModules={modules.length} completedModules={completedModulesCount} currentSession="" />
       <div className="p-6">
         <div className="space-y-4">
           <h4 className="text-base font-medium text-gray-800">Training Modules</h4>
@@ -75,26 +91,26 @@ export default function TrainingModules() {
               const isCompleted = module.status === "completed";
               const isCurrent = module.status === "in_progress";
 
+              module.status === "completed" && setCompletedModulesCount(prev => prev + 1);
+
               return (
-                <div key={module.module_id} className="border rounded-xl">
+                <div key={module.module_id} className="border rounded-xl border-top-0 border-gray-200">
                   {/* Module Header */}
                   <div
                     onClick={() => setOpenModuleId(openModuleId === module.module_id ? null : module.module_id)}
-                    className={`group flex items-center justify-between gap-4 p-4 rounded-xl transition-all duration-300 cursor-pointer ${
-                      isCompleted ? "bg-green-50 border-green-200" : 
-                      isCurrent ? "bg-gradient-to-r from-pink-50 to-orange-50 border-pink-200 shadow-md" : 
-                      "bg-gray-50 border-gray-200"
-                    } ${!isCompleted && !isCurrent ? "opacity-60" : ""}`}
+                    className={`group flex items-center justify-between gap-4 p-4 rounded-xl transition-all duration-300 cursor-pointer ${isCompleted ? "bg-green-50 border-green-200" :
+                      isCurrent ? "bg-gradient-to-r from-pink-50 to-orange-50 border-pink-200 shadow-md" :
+                        "bg-gray-50 border-gray-200"
+                      } ${!isCompleted && !isCurrent ? "opacity-60" : ""}`}
                   >
                     <div className="flex items-center gap-4 flex-1">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${
-                        isCompleted ? "bg-green-500 text-white" : 
-                        isCurrent ? "bg-gradient-to-r from-pink-500 to-orange-500 text-white" : 
-                        "bg-gray-300 text-gray-600"
-                      }`}>
-                        {isCompleted ? <CheckCircle className="w-5 h-5" /> : 
-                         isCurrent ? <Play className="w-5 h-5" /> : 
-                         <span className="text-sm font-medium">{index + 1}</span>}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${isCompleted ? "bg-green-500 text-white" :
+                        isCurrent ? "bg-gradient-to-r from-pink-500 to-orange-500 text-white" :
+                          "bg-gray-300 text-gray-600"
+                        }`}>
+                        {isCompleted ? <CheckCircle className="w-5 h-5" /> :
+                          isCurrent ? <Play className="w-5 h-5" /> :
+                            <span className="text-sm font-medium">{index + 1}</span>}
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -121,29 +137,71 @@ export default function TrainingModules() {
 
                   {/* Submodules List */}
                   {openModuleId === module.module_id && module.submodules && (
-                    <div className="relative pl-10 mt-3">
-                      <div className="absolute left-9 top-0 bottom-0 w-px bg-gray-300"></div>
+                    <div className="relative pl-12 mt-4">
+                      {/* Vertical timeline */}
+                      <div className="absolute left-12 top-0 bottom-0 w-px bg-gray-300"></div>
+
                       {module.submodules.map((sub: any) => (
-                        <div key={sub.submodule_id} className="relative flex items-start mb-4">
-                          <div className="absolute left-0 top-6 flex items-center">
-                            <div className="w-8 h-px bg-gray-300"></div>
-                            <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                        <div key={sub.submodule_id} className="relative flex items-start mb-5">
+
+                          {/* Timeline dot + horizontal line */}
+                          <div className="absolute left-2 top-6 flex items-center">
+                            {/* Horizontal line */}
+                            <div className="w-6 h-px bg-gray-300"></div>
+                            {/* Dot */}
+                            <div className="w-2.5 h-2.5 rounded-full bg-gray-400"></div>
                           </div>
-                          <div 
-                            className={`ml-12 flex-1 rounded-lg p-4 shadow-sm flex justify-between items-center hover:shadow-md transition cursor-pointer ${renderStyles(sub.status)}`}
-                            onClick={() => openSubmodule(module.module_id, sub.submodule_id)}
+
+                          {/* Card */}
+                          <div
+                            onClick={() =>
+                              sub.status !== "locked" &&
+                              openSubmodule(module.module_id, sub.submodule_id)
+                            }
+                            className={`
+          ml-10 w-full cursor-pointer rounded-lg
+          px-5 py-3   /* ⬅ reduced height */
+          flex justify-between items-center
+          transition-all duration-200
+          hover:shadow-md
+          ${renderStyles(sub.status)}
+        `}
                           >
-                            <div>
-                              <h6 className="font-medium text-gray-700">{sub.submodule_name}</h6>
-                              <p className="text-sm text-gray-500 mt-1">{sub.submodule_description}</p>
+                            {/* Left content */}
+                            <div className="space-y-0.5">
+                              <h6 className="font-semibold text-gray-800 text-sm">
+                                {sub.submodule_name}
+                              </h6>
+                              <p className="text-xs text-gray-500 max-w-xl leading-snug">
+                                {sub.submodule_description}
+                              </p>
                             </div>
-                            <div className="text-xs text-gray-500 flex items-center gap-1">
-                              {renderStatus(sub.status)} ⏱ {sub.duration} mins
+
+                            {/* Right meta */}
+                            <div className="flex flex-col items-end gap-1.5">
+                              {/* Status badge */}
+                              <span
+                                className={`
+              px-2.5 py-0.5 rounded-full text-[11px] font-medium
+              ${sub.status === "completed" && "bg-green-100 text-green-700"}
+              ${sub.status === "in_progress" && "bg-pink-100 text-pink-700"}
+              ${sub.status === "locked" && "bg-gray-200 text-gray-500"}
+            `}
+                              >
+                                {renderStatus(sub.status)}
+                              </span>
+
+                              {/* Duration */}
+                              <div className="text-[11px] text-gray-500 flex items-center gap-1">
+                                ⏱ {sub.duration} mins
+                              </div>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
+
+
                   )}
                 </div>
               );
@@ -154,7 +212,7 @@ export default function TrainingModules() {
 
       {/* --- Module Modal Component --- */}
       {selectedModule && (
-        <ModuleModal 
+        <ModuleModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           moduleName={selectedModule.module_name}

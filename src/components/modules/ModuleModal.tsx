@@ -1,4 +1,7 @@
 import React from "react";
+import male_caricature from "../../assets/RYAN_2.png";
+import female_caricature from "../../assets/EMMA_2.png";
+import { X } from "lucide-react";
 
 interface ModuleModalProps {
   isOpen: boolean;
@@ -39,10 +42,8 @@ export function ModuleModal({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-50 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110"
-        >
-          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+        ><span className="text-grey-600">X</span>
+          <X className="w-6 h-6 text-black" />
         </button>
 
         {/* 3. Character & Blackboard Section */}
@@ -51,11 +52,11 @@ export function ModuleModal({
             <div className="relative w-full">
               {/* The Blackboard */}
               <div className="bg-[#2d2d2d] rounded-2xl p-8 shadow-2xl border-[6px] border-[#b8860b] min-h-[260px] relative">
-                
+
                 {/* Character Image (Absolute Positioned) */}
                 {/* Note: Ensure these assets are in your public folder or src/assets */}
                 <img
-                  src={moduleNumber % 2 === 0 ? "/assests/RYAN_2.png" : "/assets/EMMA_2.png"}
+                  src={moduleNumber % 2 === 0 ? male_caricature : female_caricature}
                   alt="Instructor"
                   className="absolute -left-16 -bottom-6 w-56 h-auto z-20 drop-shadow-xl object-contain"
                 />
@@ -89,7 +90,7 @@ export function ModuleModal({
                     onClick={onStartModule}
                     className="mt-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-10 py-3 rounded-full font-black text-sm uppercase shadow-lg hover:scale-105 transition-transform active:scale-95"
                   >
-                    Start Learning
+                    Start Training
                   </button>
                 </div>
               </div>
@@ -106,21 +107,6 @@ export function ModuleModal({
             <p className="text-sm text-gray-700 leading-relaxed">
               You're about to start <span className="font-bold text-gray-900">{moduleName}</span>. Ready to dive into this module?
             </p>
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              onClick={onClose}
-              className="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl font-bold transition-colors uppercase text-sm tracking-wider"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onStartModule}
-              className="flex-1 py-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-2xl font-black shadow-xl hover:opacity-90 transition-opacity uppercase text-sm tracking-wider"
-            >
-              Start Module
-            </button>
           </div>
         </div>
       </div>

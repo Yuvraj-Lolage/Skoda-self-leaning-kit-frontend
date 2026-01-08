@@ -1,8 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card/card";
 import { Button } from "../ui/button";
 import { MoreVertical, Bell, MessageCircle, Settings, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getTokenData } from "../../helper/auth_token";
 
 export function ProfileCard() {
+  const [userData, setUserData] = useState<any>()
+  useEffect(() => {
+    async function getUserData() {
+      const data = await getTokenData();
+      if (data) {
+        setUserData(data);
+      }
+    }
+
+    getUserData();
+  }, [])
   return (
     <Card className="bg-white shadow-lg rounded-xl border-0">
       <CardHeader>
@@ -42,11 +55,11 @@ export function ProfileCard() {
                   </linearGradient>
                 </defs>
               </svg>
-              
+
               {/* Profile Picture - Larger */}
               <div className="absolute inset-4 rounded-full bg-gradient-to-br from-pink-400 to-purple-600 flex items-center justify-center overflow-hidden">
                 <div className="w-full h-full bg-gradient-to-br from-pink-300 to-purple-500 flex items-center justify-center text-white text-4xl font-bold">
-                  P
+                  {userData?.name ? userData.name.charAt(0).toUpperCase() : 'U'}
                 </div>
               </div>
             </div>
@@ -60,35 +73,12 @@ export function ProfileCard() {
             </div>
 
             {/* Greeting Text */}
-            <h3 className="font-medium text-lg mb-1">Good Morning Prashant</h3>
+            <h3 className="font-medium text-lg mb-1">
+              Welcome, {userData?.name
+                ? userData.name.charAt(0).toUpperCase() + userData.name.slice(1)
+                : ""}
+            </h3>
             <p className="text-sm text-gray-600 text-center mb-4 font-normal">Continue your journey and achieve your target</p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-12 h-12 rounded-full p-0 border-2 border-transparent bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white hover:text-white hover:shadow-lg hover:shadow-pink-500/25 transition-all duration-300"
-            >
-              <Bell className="w-4 h-4" />
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-12 h-12 rounded-full p-0 border-2 border-transparent bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 text-white hover:text-white hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-300"
-            >
-              <MessageCircle className="w-4 h-4" />
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-12 h-12 rounded-full p-0 border-2 border-transparent bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white hover:text-white hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       </CardContent>

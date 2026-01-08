@@ -10,9 +10,9 @@ export default function ResumeTrainingCard() {
     <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-2xl text-white shadow-lg">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-semibold">Full Stack Development</h3>
+          <h3 className="text-lg font-semibold">LMS Functionality</h3>
           <p className="text-sm text-white/90">
-            Master the fundamentals to advanced concepts
+           how to interact with various LMS features  
           </p>
 
           <p className="text-xs mt-3 opacity-90">

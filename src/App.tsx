@@ -11,6 +11,8 @@ import { Helmet } from 'react-helmet';
 import SubmoduleManager from './components/super_admin/add_submodule/submodule_manager';
 import Assessment from './components/Assessment/assesment';
 import { AdminProgressPage } from './components/super_admin/view_progress/admin_progress';
+import CreateQuiz from './components/super_admin/create_quiz';
+import AdminDashboard from './components/super_admin/admin_dashboard/admin_dashboard';
 function App() {
   const navigate = useNavigate();
   const [token, setToken] = useState(() => {
@@ -62,9 +64,17 @@ function App() {
           path="/admin/view-progress"
           element={token ? <AdminProgressPage onBackClick={ () =>{ navigate("/") } } /> : <Navigate to="/login" /> }
         />
-      </Routes>
-      
 
+      <Route
+          path="/admin/create-quiz"
+          element={token ? <CreateQuiz modules={[]} /> : <Navigate to="/login" /> }
+        />
+      <Route
+          path="/admin/dashboard"
+          element={token ? <AdminDashboard/> : <Navigate to="/login" /> }
+        />
+      </Routes>
+    
     </>
   )
 }
