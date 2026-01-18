@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import type { Method } from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { X, Trophy, Clock, Info, CheckCircle2, Timer, Circle } from "lucide-react"; 
+import { X, Trophy, Clock, Info, CheckCircle2, Timer, Star } from "lucide-react"; 
 import caricature from "../../assets/caricature.jpg";
 import male_caricature from "../../assets/RYAN_2.png";
 import female_caricature from "../../assets/EMMA_2.png";
@@ -25,15 +25,17 @@ type QuizPageProps = {
   onQuizComplete?: (score: number, total: number) => void;
 };
 
-const TIMER_DURATION = 15; 
+const TIMER_DURATION = 5; 
 
 const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
   const { module_id, assessment_id } = useParams<{ module_id: string; assessment_id: string }>();
   
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
+  const [assessmentName, setAssessmentName] = useState<string>("Knowledge Check");
   const [answers, setAnswers] = useState<Record<number, string[]>>({}); 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
+  const [totalXP, setTotalXP] = useState<number>(0);
   const [error, setError] = useState<string>("");
   const [timer, setTimer] = useState<number>(TIMER_DURATION);
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
@@ -49,9 +51,6 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
   const navigate = useNavigate();
 
   const moduleNumber = parseInt(module_id || "1");
-  const instructorImg = moduleNumber % 2 === 0 ? "/assets/RYAN_2.png" : "/assets/EMMA_2.png";
-
-  // Determine if current question is multiple choice
   const currentQuestion = quiz[currentIndex];
   const isMultiChoice = currentQuestion ? Array.isArray(currentQuestion.correct) : false;
 
@@ -74,7 +73,12 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
       const res = await apiCall("get", `/assessment/by/module/${module_id}`);
       const allRows = Array.isArray(res) ? res : (res?.assessments || []);
       const target = allRows.find((row: any) => String(row.assessment_id) === String(assessment_id) || String(row.id) === String(assessment_id));
+      
       if (!target) { setError(`Assessment ${assessment_id} not found.`); return; }
+      
+      // SYNC ASSESSMENT NAME FROM DATABASE
+      setAssessmentName(target.title || target.name || `Assessment ${assessment_id}`);
+
       const rawQuestions = target.questions || target.assessment || [];
       const finalQuestions = rawQuestions.map((item: any, idx: number) => ({
         id: item.id || `${assessment_id}_${idx}`,
@@ -108,42 +112,59 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
     }
   };
 
-  const handleNext = () => {
-    if (currentIndex < quiz.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setTimer(TIMER_DURATION);
-      setTimerKey(prev => prev + 1);
-    } else {
-      if (startTime) {
-        const endTime = Date.now();
-        const durationMs = endTime - startTime;
-        const totalSeconds = Math.floor(durationMs / 1000);
-        const mins = Math.floor(totalSeconds / 60);
-        const secs = totalSeconds % 60;
-        setTotalTimeTaken(`${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
-      }
-      setIsFinished(true);
-      onQuizComplete?.(score, quiz.length);
+const handleNext = async () => {
+  if (currentIndex < quiz.length - 1) {
+    setCurrentIndex(prev => prev + 1);
+    setTimer(TIMER_DURATION);
+    setTimerKey(prev => prev + 1);
+  } else {
+    // 1. Calculate time immediately
+    if (startTime) {
+      const endTime = Date.now();
+      const durationMs = endTime - startTime;
+      const totalSeconds = Math.floor(durationMs / 1000);
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      setTotalTimeTaken(`${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
     }
-  };
+
+    // 2. SHOW THE SCORE SECTION IMMEDIATELY
+    // This ensures the UI updates even if the network is slow
+    setIsFinished(true); 
+    onQuizComplete?.(score, quiz.length);
+
+    // 3. Save XP in the background
+    try {
+      await apiCall("post", "/user/update-xp", { 
+        xpEarned: totalXP 
+      });
+      console.log("XP Synced successfully!");
+    } catch (err) {
+      // If this fails, the user still sees their score, but we log the error
+      console.error("Background XP sync failed:", err);
+    }
+  }
+};
 
   const handleOptionClick = (key: string) => {
     if (showFeedback) return;
     setAnswers(prev => {
       const currentSelection = prev[currentIndex] || [];
-      
       if (isMultiChoice) {
-        // Toggle selection for Multi-choice
-        if (currentSelection.includes(key)) {
-          return { ...prev, [currentIndex]: currentSelection.filter(k => k !== key) };
-        } else {
-          return { ...prev, [currentIndex]: [...currentSelection, key] };
-        }
+        return { ...prev, [currentIndex]: currentSelection.includes(key) ? currentSelection.filter(k => k !== key) : [...currentSelection, key] };
       } else {
-        // Radio behavior for Single-choice
         return { ...prev, [currentIndex]: [key] };
       }
     });
+  };
+
+  const calculateEarnedXP = (isCorrect: boolean, timeRemaining: number, multi: boolean) => {
+    if (!isCorrect) return 0;
+    // Base: 10 for single, 15 for multi
+    const baseXP = multi ? 15 : 10;
+    // Bonus: up to 50% extra for speed
+    const speedBonus = Math.floor((timeRemaining / TIMER_DURATION) * 5);
+    return baseXP + speedBonus;
   };
 
   const handleConfirm = () => {
@@ -154,7 +175,11 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
     const correctKeys = correctIndices.map(idx => String.fromCharCode(65 + idx));
     const isCorrect = selected.length === correctKeys.length && selected.every(k => correctKeys.includes(k));
 
-    if (isCorrect) setScore(s => s + 1);
+    if (isCorrect) {
+      setScore(s => s + 1);
+      setTotalXP(prev => prev + calculateEarnedXP(true, timer, isMultiChoice));
+    }
+
     setShowFeedback(true);
     setTimeout(() => { 
       setShowFeedback(false); 
@@ -171,15 +196,9 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
     const isSelected = selected.includes(key);
     
     const base: React.CSSProperties = { 
-        padding: 16, 
-        borderRadius: 12, 
-        fontWeight: 600, 
-        marginBottom: 12, 
-        transition: "0.3s", 
-        border: "1px solid #eee", 
-        cursor: showFeedback ? "default" : "pointer", 
-        display: "flex", 
-        alignItems: "center" 
+        padding: 16, borderRadius: 12, fontWeight: 600, marginBottom: 12, transition: "0.3s", 
+        border: "1px solid #eee", cursor: showFeedback ? "default" : "pointer", 
+        display: "flex", alignItems: "center" 
     };
 
     if (!showFeedback) return { ...base, background: isSelected ? "#FFB400" : "#fff", borderColor: isSelected ? "#ea5205" : "#eee" };
@@ -224,7 +243,6 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                 <div className="flex items-end justify-center">
                   <div className="relative w-full">
                     <div className="bg-[#2d2d2d] rounded-2xl p-8 shadow-2xl border-[6px] border-[#b8860b] min-h-[260px] relative">
-                      
                       <img
                         src={female_caricature}
                         onError={(e) => { (e.target as HTMLImageElement).src = caricature; }}
@@ -232,10 +250,11 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                         className="absolute -left-16 -bottom-6 w-56 h-auto z-20 drop-shadow-xl object-contain"
                         style={{ animation: "float 3s infinite ease-in-out" }}
                       />
-
                       <div className="relative z-10 ml-32 space-y-4">
                         <div className="flex items-center gap-3">
-                          <div className="bg-orange-500 text-white font-bold px-3 py-1 rounded-lg text-sm">ASSESSMENT {assessment_id}</div>
+                          <div className="bg-orange-500 text-white font-bold px-3 py-1 rounded-lg text-sm uppercase tracking-wider">
+                            {assessmentName}
+                          </div>
                           <div className="flex-1 h-px bg-white/20"></div>
                         </div>
                         <h3 className="text-white font-extrabold text-2xl uppercase tracking-tight leading-tight">Knowledge Check</h3>
@@ -254,7 +273,7 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
               <div className="p-8">
                 <div className="flex items-start gap-4 p-5 bg-blue-50 rounded-2xl border border-blue-100">
                   <Info className="w-5 h-5 text-blue-500 mt-1" />
-                  <p className="text-sm text-gray-700">Note: Pay attention to the selection icons. Squares <span className="inline-block w-3 h-3 bg-gray-400 rounded-sm"></span> mean multiple answers, circles <span className="inline-block w-3 h-3 bg-gray-400 rounded-full"></span> mean only one!</p>
+                  <p className="text-sm text-gray-700">Note: Pay attention to selection icons. Squares <span className="inline-block w-3 h-3 bg-gray-400 rounded-sm"></span> mean multiple answers, circles <span className="inline-block w-3 h-3 bg-gray-400 rounded-full"></span> mean only one!</p>
                 </div>
               </div>
             </div>
@@ -265,16 +284,8 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
           <div style={{ background: "#fff", borderRadius: 16, padding: 30, boxShadow: "0 8px 20px rgba(0,0,0,0.1)", position: "relative" }}>
              <div style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center", color: "#666" }}>
                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span>Question {currentIndex + 1} of {quiz.length}</span>
-                  <span style={{ 
-                    fontSize: '10px', 
-                    padding: '2px 8px', 
-                    borderRadius: '12px', 
-                    background: isMultiChoice ? '#E0F2FE' : '#FEF3C7',
-                    color: isMultiChoice ? '#0369A1' : '#92400E',
-                    fontWeight: 700,
-                    textTransform: 'uppercase'
-                  }}>
+                 <span>Question {currentIndex + 1} of {quiz.length}</span>
+                 <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '12px', background: isMultiChoice ? '#E0F2FE' : '#FEF3C7', color: isMultiChoice ? '#0369A1' : '#92400E', fontWeight: 700, textTransform: 'uppercase' }}>
                     {isMultiChoice ? "Multiple Choice" : "Single Choice"}
                   </span>
                </div>
@@ -286,24 +297,11 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                const isSelected = (answers[currentIndex] || []).includes(opt.key);
                return (
                 <div key={opt.key} onClick={() => handleOptionClick(opt.key)} style={optionStyle(opt.key)}>
-                  {/* Differentiated Visual: Circle for Single, Square for Multi */}
                   <div style={{ 
-                    width: 24, 
-                    height: 24, 
-                    borderRadius: isMultiChoice ? 6 : "50%", 
-                    border: "2px solid #ddd", 
-                    marginRight: 15, 
-                    display: "flex", 
-                    alignItems: "center", 
-                    justifyContent: "center", 
-                    background: isSelected ? "#FFB400" : "transparent",
-                    transition: "all 0.2s ease"
+                    width: 24, height: 24, borderRadius: isMultiChoice ? 6 : "50%", border: "2px solid #ddd", marginRight: 15, display: "flex", alignItems: "center", justifyContent: "center", 
+                    background: isSelected ? "#FFB400" : "transparent", transition: "all 0.2s ease"
                   }}>
-                    {isSelected && (
-                      isMultiChoice 
-                        ? <CheckCircle2 className="w-4 h-4 text-white" /> 
-                        : <div style={{ width: 10, height: 10, borderRadius: "50%", background: "white" }} />
-                    )}
+                    {isSelected && (isMultiChoice ? <CheckCircle2 className="w-4 h-4 text-white" /> : <div style={{ width: 10, height: 10, borderRadius: "50%", background: "white" }} />)}
                   </div>
                   <strong style={{ marginRight: 12 }}>{opt.key}</strong> {opt.text}
                 </div>
@@ -314,32 +312,15 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                <div style={{ width: `${(timer / TIMER_DURATION) * 100}%`, height: "100%", background: "#ea5205", transition: "width 1s linear" }} />
              </div>
 
-             <div style={{ marginTop: 30, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               {/* <button onClick={() => currentIndex > 0 && setCurrentIndex(currentIndex - 1)} disabled={currentIndex === 0 || showFeedback} style={{ padding: "10px 25px", borderRadius: 8, border: "1px solid #ddd", background: "#fff", cursor: "pointer", opacity: currentIndex === 0 ? 0.5 : 1 }}>⬅ Previous</button> */}
+             <div style={{ marginTop: 30, display: "flex", justifyContent: "flex-end" }}>
                <button onClick={handleConfirm} disabled={showFeedback || (answers[currentIndex] || []).length === 0} style={{ padding: "12px 40px", borderRadius: 12, border: "none", background: showFeedback ? "#ccc" : "linear-gradient(90deg, #ea5205, #e91e87ff)", color: "#fff", fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 15px rgba(234, 82, 5, 0.3)" }}>
                  {showFeedback ? "Checking..." : (currentIndex === quiz.length - 1 ? "Finish Assessment 🏁" : "Confirm & Next ➡")}
                </button>
              </div>
 
-             {/* GUIDING CARICATURE */}
              <div style={{ position: "fixed", bottom: 40, right: 90, display: "flex", alignItems: "center", gap: 15, zIndex: 100 }}>
-                <div style={{ 
-                    background: "#fff", 
-                    padding: "12px 20px", 
-                    borderRadius: "20px 20px 0px 20px", 
-                    boxShadow: "0 10px 25px rgba(0,0,0,0.1)", 
-                    fontSize: 14, 
-                    fontWeight: 600,
-                    color: "#333",
-                    maxWidth: 200,
-                    border: "2px solid #f38005",
-                    animation: "fadeIn 0.5s ease-out"
-                }}>
+                <div style={{ background: "#fff", padding: "12px 20px", borderRadius: "20px 20px 0px 20px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", fontSize: 14, fontWeight: 600, color: "#333", maxWidth: 200, border: "2px solid #f38005", animation: "fadeIn 0.5s ease-out" }}>
                   {getGuideMessage()}
-                </div>
-                <div style={{ position: "relative" }}>
-                   <div style={{ position: "absolute", top: -5, right: -5, width: 15, height: 15, background: "#28a745", borderRadius: "50%", border: "2px solid #fff" }}></div>
-                   <img src={instructorImg} onError={(e) => { (e.target as HTMLImageElement).src = caricature; }} style={{ width: 70, height: 70, borderRadius: "50%", border: "3px solid #f38005", objectFit: "cover", background: "#fff", animation: "float 3s infinite ease-in-out" }} alt="guide" />
                 </div>
                 <img src={male_caricature} style={{ width: 120, height: 120, borderRadius: "0%", objectFit: "cover" }} alt="guide" />
              </div>
@@ -356,26 +337,27 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                 
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "20px", marginBottom: 40, flexWrap: "wrap" }}>
                   <div style={{ textAlign: "center", minWidth: "120px" }}>
-                    <div style={{ fontSize: "2.5rem", fontWeight: 900, color: getScoreData().color }}>{score} / {quiz.length}</div>
-                    <div style={{ fontSize: "0.7rem", color: "#efeaeaff", textTransform: "uppercase", letterSpacing: 1 }}>Score</div>
+                    <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "#FFB400", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                      <Star className="w-8 h-8 fill-[#FFB400]" /> {totalXP}
+                    </div>
+                    <div style={{ fontSize: "0.7rem", color: "#efeaeaff", textTransform: "uppercase", letterSpacing: 1 }}>Total XP Earned</div>
                   </div>
                   <div style={{ height: 40, width: 2, background: "#333" }} />
                   <div style={{ textAlign: "center", minWidth: "120px" }}>
-                    <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "#f1eaeaff" }}>{quiz.length > 0 ? ((score/quiz.length)*100).toFixed(0) : 0}%</div>
-                    <div style={{ fontSize: "0.7rem", color: "#f1ececff", textTransform: "uppercase", letterSpacing: 1 }}>Accuracy</div>
+                    <div style={{ fontSize: "2.5rem", fontWeight: 900, color: getScoreData().color }}>{score} / {quiz.length}</div>
+                    <div style={{ fontSize: "0.7rem", color: "#efeaeaff", textTransform: "uppercase", letterSpacing: 1 }}>Score</div>
                   </div>
                   <div style={{ height: 40, width: 2, background: "#333" }} />
                   <div style={{ textAlign: "center", minWidth: "120px" }}>
                     <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "#3b82f6", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                       <Timer className="w-8 h-8" /> {totalTimeTaken}
                     </div>
-                    <div style={{ fontSize: "0.7rem", color: "#f1ececff", textTransform: "uppercase", letterSpacing: 1 }}>Total Time Taken</div>
+                    <div style={{ fontSize: "0.7rem", color: "#f1ececff", textTransform: "uppercase", letterSpacing: 1 }}>Total Time</div>
                   </div>
                 </div>
 
                 <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
-                  {/* <button onClick={() => window.location.reload()} style={{ padding: "14px 30px", borderRadius: 12, border: "none", background: "#f0f0f0", color: "#333", fontWeight: 700, cursor: "pointer" }}>🔁 Try Again</button> */}
-                  <button onClick={() => navigate("/dashboard")} style={{ padding: "14px 30px", borderRadius: 12, border: "none", background: "linear-gradient(90deg, #d62569, #ea5205)", color: "#fff", fontWeight: 700, cursor: "pointer" }}> Home</button>
+                  <button onClick={() => navigate("/dashboard")} style={{ padding: "14px 30px", borderRadius: 12, border: "none", background: "linear-gradient(90deg, #d62569, #ea5205)", color: "#fff", fontWeight: 700, cursor: "pointer" }}>Back to Dashboard</button>
                 </div>
               </div>
            </div>
