@@ -16,13 +16,90 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
   const [description, setDescription] = useState("");
   const [position, setPosition] = useState(submodules.length + 1);
   const [file, setFile] = useState<File | null>(null);
+  const [fileType, setFileType] = useState("");
+
   const [loading, setLoading] = useState(false);
+
+  const fileTypes = ["Video", "Presentation", "DeepLink", "PDF", "Excel", "word", "Wed-based content"];
+
+  const FILE_TYPE_MIME_MAP: Record<string, string[]> = {
+    Video: ["video/mp4", "video/webm", "video/ogg"],
+
+    Presentation: [
+      "application/vnd.ms-powerpoint",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ],
+
+    PDF: ["application/pdf"],
+
+    Excel: [
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ],
+
+    word: [
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ],
+
+    // No file upload needed
+    DeepLink: [],
+    "Wed-based content": [],
+  };
+
+
+  const getAcceptValue = (fileType: string) => {
+    switch (fileType) {
+      case "Video":
+        return "video/*";
+      case "Presentation":
+        return ".ppt,.pptx";
+      case "PDF":
+        return ".pdf";
+      case "Excel":
+        return ".xls,.xlsx";
+      case "word":
+        return ".doc,.docx";
+      default:
+        return "*";
+    }
+  };
+
+  const getErrorMessage = (fileType: string) => {
+    switch (fileType) {
+      case "Video":
+        return "Please upload a video file (MP4, WebM)";
+      case "PDF":
+        return "Please upload a PDF document";
+      case "Presentation":
+        return "Please upload a PPT or PPTX file";
+      case "Excel":
+        return "Please upload an Excel file";
+      case "word":
+        return "Please upload a Word document";
+      default:
+        return "Invalid file type selected";
+    }
+  };
+
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] ?? null;
 
-    if (selectedFile && !selectedFile.type.startsWith("video/")) {
-      alert("Only video files are allowed");
+    if (!selectedFile) return;
+
+    // If selected type does not require file
+    if (fileType === "DeepLink" || fileType === "Wed-based content") {
+      alert("This content type does not require file upload");
+      e.target.value = "";
+      return;
+    }
+
+    const allowedMimeTypes = FILE_TYPE_MIME_MAP[fileType];
+
+    if (!allowedMimeTypes?.includes(selectedFile.type)) {
+      alert(`Invalid file type for ${fileType}`);
       e.target.value = "";
       return;
     }
@@ -30,6 +107,7 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
     setFile(selectedFile);
     console.log("Selected file:", selectedFile);
   };
+
 
 
   const handleSubmit = async () => {
@@ -47,12 +125,13 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
 
     const formData = new FormData();
 
-    // ✅ Append ALL fields
+    // Append ALL fields
     formData.append("module_id", String(moduleId));
     formData.append("submodule_name", name);
     formData.append("submodule_description", description);
     formData.append("order_index", String(position));
     formData.append("file", file);
+    formData.append("file_type", fileType);
 
     // ================= LOG FORM DATA =================
     console.log("🚀 Submitting Submodule FormData:");
@@ -75,9 +154,13 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
-          }
+            "x-file-type": fileType,
+            "x-module-index": moduleId,
+            "x-submodule-index": position
+          },
         }
       );
+
       ToastHelper.success("Submodule created successfully!");
 
       // reset form
@@ -85,6 +168,7 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
       setDescription("");
       setPosition(submodules.length + 1);
       setFile(null);
+      setFileType("");
       refresh();
 
     } catch (error: any) {
@@ -97,7 +181,7 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
-       <Toaster />
+      <Toaster />
       <h2 className="text-xl font-semibold text-gray-800 mb-4">
         Add New Submodule
       </h2>
@@ -118,12 +202,30 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
           onChange={(e) => setDescription(e.target.value)}
         />
 
+        <select
+          className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-600"
+          value={fileType}
+          onChange={(e) => setFileType(e.target.value)}
+        >
+          <option value="" disabled>
+            Select File Type
+          </option>
+
+          {fileTypes.map((fType) => (
+            <option key={fType} value={fType}>
+              {fType}
+            </option>
+          ))}
+        </select>
+
         <input
           type="file"
-          accept="video/*"
+          accept={getAcceptValue(fileType)}
+          disabled={fileType === "DeepLink" || fileType === "Wed-based content"}
           className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-600"
           onChange={handleFileChange}
         />
+
 
         <select
           className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-600"

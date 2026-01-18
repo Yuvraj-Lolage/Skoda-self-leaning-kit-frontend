@@ -12,6 +12,7 @@ import ModuleManager from "../super_admin/add_module/module_manager";
 import SubmoduleManager from "../super_admin/add_submodule/submodule_manager";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AdminProgressPage } from "../super_admin/view_progress/admin_progress";
+import AdminDashboard from "../super_admin/admin_dashboard/admin_dashboard";
 
 
 // Simple WelcomeModal component definition
@@ -54,6 +55,7 @@ const Render_layout: React.FC = () => {
     return storedToken ? storedToken : null;
   });
   const [tokenData, setTokenData] = useState<any | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const startTour = () => {
@@ -99,58 +101,75 @@ const Render_layout: React.FC = () => {
     else setActiveTab("dashboard");
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (token) {
-      setTokenData(getTokenData());
+
+  const fetchTokenData = async () => {
+    try {
+      const data = await getTokenData();
+
+      if (!data) return;
+
+      setTokenData(data);
+      setCurrentUserRole(data.role);
+    } catch (err) {
+      console.error("Error fetching token data:", err);
     }
-  }, [])
+  };
+
 
   useEffect(() => {
-    if (tokenData && tokenData.first_visit_welcome == 0) {
+    fetchTokenData();
+  }, []);
+
+
+
+  useEffect(() => {
+    if (!tokenData) return;
+
+    if (tokenData.first_visit_welcome === 0) {
       setShowWelcomeModal(true);
     }
-    else {
-      console.warn(`Already displayed welcome message`);
-    }
-
   }, [tokenData]);
-  // Render content based on active tab
-  // const renderContent = () => {
-  //   switch (activeTab) {
-  //     case "dashboard":
-  //       return <Dashboard />;
-  //     case "training":
-  //       return <Training_info />;
-  //     case "settings":
-  //       return <h2 className="text-xl">⚙️ Settings Content</h2>;
-  //     case "add-module":
-  //       return <ModuleManager />;
-  //     case "add-submodule":
-  //       return <SubmoduleManager />;
-  //     case "view-progress":
-  //       <AdminProgressPage onBackClick={ () =>{ navigate("/") } } />
-  //       break;
-  //     default:
-  //       return <Dashboard/>;
-  //   }
-  // };
+
+
+  const CenterLoader = () => {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="h-10 w-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+    </div>
+  );
+};
+
 
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard />;
+
+        if (!currentUserRole) {
+          return <CenterLoader/>; // or loader
+        }
+        if (currentUserRole === "Admin") {
+          return <AdminDashboard />
+        }
+        else {
+          return <Dashboard />;
+        }
 
       case "training":
-        return <Training_info />;
+        // return <Training_info />;
+        navigate("/training");
+        break;
 
       case "settings":
         return <h2 className="text-xl">⚙️ Settings Content</h2>;
 
+
       case "add-module":
         return <ModuleManager />;
 
+
       case "add-submodule":
         return <SubmoduleManager />;
+
 
       case "view-progress":
         return (
@@ -158,10 +177,17 @@ const Render_layout: React.FC = () => {
             onBackClick={() => navigate("/")}
           />
         );
+        return (
+          <AdminProgressPage
+            onBackClick={() => navigate("/")}
+          />
+        );
       default:
+        return <Dashboard />;
         return <Dashboard />;
     }
   };
+
 
 
   const handleCloseWelcome = async () => {

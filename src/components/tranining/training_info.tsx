@@ -34,16 +34,68 @@ export default function TrainingModules() {
 
   const loadModules = async () => {
     try {
-      const response = await axiosInstance.get("/module/with-submodules/with-status/all?userId=2", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axiosInstance.get(
+        "/module/with-submodules/with-status/all",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       if (response.status === 200) {
-        setModules(response.data);
+        const normalizedModules = response.data.modules.modules.map((module: any) => {
+          const normalizedSubmodules = (module.submodules || [])
+            .filter(Boolean)
+            .sort((a: any, b: any) => a.submodule_order_index - b.submodule_order_index)
+            .map((sub: any) => ({
+              ...sub,
+              status:
+                sub.submodule_status === 1
+                  ? "completed"
+                  : sub.submodule_id === module.current_submodule_id
+                    ? "in_progress"
+                    : "locked"
+            }));
+
+          // const moduleStatus =
+          //   normalizedSubmodules.every((s: any) => s.status === "completed")
+          //     ? "completed"
+          //     : normalizedSubmodules.some((s: any) => s.status === "in_progress")
+          //     ? "in_progress"
+          //     : "locked";
+          let moduleStatus = "locked";
+
+          if (normalizedSubmodules.length > 0) {
+            if (normalizedSubmodules.every((s: any) => s.status === "completed")) {
+              moduleStatus = "completed";
+            } else if (normalizedSubmodules.some((s: any) => s.status === "in_progress")) {
+              moduleStatus = "in_progress";
+            }
+          }
+
+
+          return {
+            ...module,
+            status: moduleStatus,
+            submodules: normalizedSubmodules
+          };
+        });
+
+        setModules(normalizedModules);
       }
     } catch (error) {
       console.error("Error loading modules:", error);
     }
   };
+
+
+  useEffect(() => {
+    if (!modules) return;
+
+    const completedCount = modules.filter(
+      (m) => m.status === "completed"
+    ).length;
+
+    setCompletedModulesCount(completedCount);
+  }, [modules]);
+
 
   useEffect(() => {
     loadModules();
@@ -82,7 +134,24 @@ export default function TrainingModules() {
 
   return (
     <div className="bg-white rounded-2xl shadow border border-gray-200">
-      <TrainingAnalysis userName={ userData?.name } totalModules={modules.length} completedModules={completedModulesCount} currentSession="" />
+      {/* Header with back button */}
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-200">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
+        >
+          <span className="text-lg">←</span>
+          Back
+        </button>
+
+        {/* Page Title */}
+        <h3 className="text-lg font-semibold text-gray-800">
+          Training Modules
+        </h3>
+      </div>
+
+      <TrainingAnalysis userName={userData?.name} totalModules={modules.length} completedModules={completedModulesCount} currentSession="" />
       <div className="p-6">
         <div className="space-y-4">
           <h4 className="text-base font-medium text-gray-800">Training Modules</h4>
@@ -136,7 +205,7 @@ export default function TrainingModules() {
                   </div>
 
                   {/* Submodules List */}
-                  {openModuleId === module.module_id && module.submodules && (
+                  {openModuleId === module.module_id && module.submodules.length > 0 && (
                     <div className="relative pl-12 mt-4">
                       {/* Vertical timeline */}
                       <div className="absolute left-12 top-0 bottom-0 w-px bg-gray-300"></div>

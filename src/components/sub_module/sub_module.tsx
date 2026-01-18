@@ -7,6 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../API/axios_instance";
 import TrainingVideo from "../ui/training_video/training_video";
 import { Tabs, TabsContent, TabsTrigger, TabsList } from "../ui/tabs";
+import ContentRenderer from "../ui/container_renderer/container_renderer";
 
 interface CoursePlayerPageProps {
     onBackClick: () => void;
@@ -38,6 +39,7 @@ interface SubmoduleData {
     module_id: string;
     name: string;
     description: string;
+    content_type: string;
     content_url: string;
     order_index: string;
     duration: string;
@@ -184,8 +186,10 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
             <div className="flex-1 flex">
                 {/* Left Side - Player Area */}
                 <div className="flex-1 flex flex-col">
-                    {submoduleData?.content_url ? (
-                        <><TrainingVideo video_url={submoduleData.content_url} />
+                        {/* <TrainingVideo video_url={submoduleData?.content_url ?? ""} /> */}
+                        {submoduleData ? (
+                            <ContentRenderer submoduleData={submoduleData} />
+                        ) : null}
                             {/* <h1>{submoduleData.name}</h1>
                             <p>{submoduleData.description}</p> */}
                             <div className="flex-1 flex flex-col">
@@ -278,15 +282,6 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
                                     </Tabs>
                                 </div>
                             </div>
-                        </>
-                    ) : (
-                        <div className="flex-1 flex items-center justify-center">
-                            <div className="text-center">
-                                <p className="text-lg font-medium text-gray-700">No video for this module</p>
-                                <p className="text-sm text-gray-500 mt-1">This submodule does not contain a video.</p>
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Right Sidebar - Course Outline */}
