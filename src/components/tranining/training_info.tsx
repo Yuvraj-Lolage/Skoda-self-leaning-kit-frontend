@@ -160,6 +160,8 @@ export default function TrainingModules() {
               const isCompleted = module.status === "completed";
               const isCurrent = module.status === "in_progress";
 
+              module.status === "completed" && setCompletedModulesCount(prev => prev + 1);
+
               return (
                 <div key={module.module_id} className="border rounded-xl border-top-0 border-gray-200">
                   {/* Module Header */}

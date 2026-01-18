@@ -162,11 +162,14 @@ const Render_layout: React.FC = () => {
       case "settings":
         return <h2 className="text-xl">⚙️ Settings Content</h2>;
 
+
       case "add-module":
         return <ModuleManager />;
 
+
       case "add-submodule":
         return <SubmoduleManager />;
+
 
       case "view-progress":
         return (
@@ -174,10 +177,17 @@ const Render_layout: React.FC = () => {
             onBackClick={() => navigate("/")}
           />
         );
+        return (
+          <AdminProgressPage
+            onBackClick={() => navigate("/")}
+          />
+        );
       default:
+        return <Dashboard />;
         return <Dashboard />;
     }
   };
+
 
 
   const handleCloseWelcome = async () => {
