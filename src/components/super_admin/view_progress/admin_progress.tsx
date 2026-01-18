@@ -77,7 +77,7 @@ export function AdminProgressPage({
       modules: [
         {
           id: "M1",
-          name: "Python & Statistics Foundations",
+          name: "Organisation Overview",
           progress: 100,
           completedLessons: 8,
           totalLessons: 8,
@@ -85,7 +85,7 @@ export function AdminProgressPage({
         },
         {
           id: "M2",
-          name: "Exploratory Data Analysis",
+          name: "Department QMS Standard Process",
           progress: 75,
           completedLessons: 9,
           totalLessons: 12,
@@ -93,7 +93,7 @@ export function AdminProgressPage({
         },
         {
           id: "M3",
-          name: "Machine Learning Fundamentals",
+          name: "Work Instructions",
           progress: 40,
           completedLessons: 6,
           totalLessons: 15,
@@ -101,17 +101,35 @@ export function AdminProgressPage({
         },
         {
           id: "M4",
-          name: "Deep Learning & Neural Networks",
+          name: "LMS Functionality",
           progress: 0,
           completedLessons: 0,
           totalLessons: 10,
           status: "not-started",
         },
+       {
+          id: "M5",
+          name: "Nominations Management",
+          progress: 0,
+          completedLessons: 0,
+          totalLessons: 10,
+          status: "not-started",
+        },
+        {
+          id: "M6",
+          name: "Reports Preparation Method",
+          progress: 0,
+          completedLessons: 0,
+          totalLessons: 10,
+          status: "not-started",
+        },
+
+       
       ],
       assessments: [
         {
           id: "A1",
-          name: "Python Basics Quiz",
+          name: "Module 1 – Sub-1 Department Overview",
           attemptNumber: 1,
           marksObtained: 85,
           totalMarks: 100,
@@ -120,7 +138,7 @@ export function AdminProgressPage({
         },
         {
           id: "A2",
-          name: "Statistics Assessment",
+          name: "Module 1 – Sub-2 Knowledge Check",
           attemptNumber: 2,
           marksObtained: 78,
           totalMarks: 100,
@@ -129,7 +147,7 @@ export function AdminProgressPage({
         },
         {
           id: "A3",
-          name: "EDA Mid-term",
+          name: "Module 1 – Sub-3 Knowledge Check",
           attemptNumber: 1,
           marksObtained: 92,
           totalMarks: 100,
@@ -140,8 +158,8 @@ export function AdminProgressPage({
     },
     {
       id: "U002",
-      name: "Michael Chen",
-      email: "michael.chen@company.com",
+      name: "Yuvraj Lolage",
+      email: "yuvraj@gmail.com",
       avatar:
         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80",
       completedModules: 12,
@@ -152,7 +170,7 @@ export function AdminProgressPage({
       modules: [
         {
           id: "M1",
-          name: "Python & Statistics Foundations",
+          name: "Organisation Overview",
           progress: 100,
           completedLessons: 8,
           totalLessons: 8,
@@ -160,7 +178,7 @@ export function AdminProgressPage({
         },
         {
           id: "M2",
-          name: "Exploratory Data Analysis",
+          name: "Department QMS Standard Process",
           progress: 100,
           completedLessons: 12,
           totalLessons: 12,
@@ -168,7 +186,7 @@ export function AdminProgressPage({
         },
         {
           id: "M3",
-          name: "Machine Learning Fundamentals",
+          name: "Work Instructions",
           progress: 100,
           completedLessons: 15,
           totalLessons: 15,
@@ -176,7 +194,7 @@ export function AdminProgressPage({
         },
         {
           id: "M4",
-          name: "Deep Learning & Neural Networks",
+          name: "LMS Functionality",
           progress: 100,
           completedLessons: 10,
           totalLessons: 10,
@@ -186,7 +204,7 @@ export function AdminProgressPage({
       assessments: [
         {
           id: "A1",
-          name: "Python Basics Quiz",
+          name: "Module 1 – Sub-1 Department Overview",
           attemptNumber: 1,
           marksObtained: 95,
           totalMarks: 100,
@@ -195,7 +213,7 @@ export function AdminProgressPage({
         },
         {
           id: "A2",
-          name: "Statistics Assessment",
+          name: "Module 1 – Sub-2 Knowledge Check",
           attemptNumber: 1,
           marksObtained: 88,
           totalMarks: 100,
@@ -204,28 +222,20 @@ export function AdminProgressPage({
         },
         {
           id: "A3",
-          name: "EDA Mid-term",
+          name: "Module 1 – Sub-3 Knowledge Check",
           attemptNumber: 1,
           marksObtained: 96,
           totalMarks: 100,
           status: "pass",
           completedDate: "2024-12-13",
         },
-        {
-          id: "A4",
-          name: "ML Final Assessment",
-          attemptNumber: 1,
-          marksObtained: 92,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-17",
-        },
+        
       ],
     },
     {
       id: "U003",
-      name: "Emily Rodriguez",
-      email: "emily.rodriguez@company.com",
+      name: "Sara Lonare",
+      email: "sara.lonare@gmail.com",
       avatar:
         "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&q=80",
       completedModules: 5,
@@ -236,7 +246,7 @@ export function AdminProgressPage({
       modules: [
         {
           id: "M1",
-          name: "Python & Statistics Foundations",
+          name: "Organisation Overview",
           progress: 100,
           completedLessons: 8,
           totalLessons: 8,
@@ -244,54 +254,64 @@ export function AdminProgressPage({
         },
         {
           id: "M2",
-          name: "Exploratory Data Analysis",
-          progress: 50,
-          completedLessons: 6,
+          name: "Department QMS Standard Process",
+          progress: 100,
+          completedLessons: 12,
           totalLessons: 12,
-          status: "in-progress",
+          status: "completed",
         },
         {
           id: "M3",
-          name: "Machine Learning Fundamentals",
-          progress: 20,
-          completedLessons: 3,
+          name: "Work Instructions",
+          progress: 100,
+          completedLessons: 15,
           totalLessons: 15,
-          status: "in-progress",
+          status: "completed",
         },
         {
           id: "M4",
-          name: "Deep Learning & Neural Networks",
-          progress: 0,
-          completedLessons: 0,
+          name: "LMS Functionality",
+          progress: 100,
+          completedLessons: 10,
           totalLessons: 10,
-          status: "not-started",
+          status: "completed",
         },
       ],
       assessments: [
         {
           id: "A1",
-          name: "Python Basics Quiz",
-          attemptNumber: 2,
-          marksObtained: 72,
+          name: "Module 1 – Sub-1 Department Overview",
+          attemptNumber: 1,
+          marksObtained: 95,
           totalMarks: 100,
           status: "pass",
-          completedDate: "2024-12-14",
+          completedDate: "2024-12-10",
         },
         {
           id: "A2",
-          name: "Statistics Assessment",
+          name: "Module 1 – Sub-2 Knowledge Check",
           attemptNumber: 1,
-          marksObtained: 65,
+          marksObtained: 88,
           totalMarks: 100,
           status: "pass",
-          completedDate: "2024-12-16",
+          completedDate: "2024-12-11",
         },
+        {
+          id: "A3",
+          name: "Module 1 – Sub-3 Knowledge Check",
+          attemptNumber: 1,
+          marksObtained: 96,
+          totalMarks: 100,
+          status: "pass",
+          completedDate: "2024-12-13",
+        },
+        
       ],
     },
     {
       id: "U004",
-      name: "David Park",
-      email: "david.park@company.com",
+      name: "Aditi Londhe",
+      email: "aditi.londhe@gmail.com",
       avatar:
         "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80",
       completedModules: 10,
@@ -302,7 +322,7 @@ export function AdminProgressPage({
       modules: [
         {
           id: "M1",
-          name: "Python & Statistics Foundations",
+          name: "Organisation Overview",
           progress: 100,
           completedLessons: 8,
           totalLessons: 8,
@@ -310,7 +330,7 @@ export function AdminProgressPage({
         },
         {
           id: "M2",
-          name: "Exploratory Data Analysis",
+          name: "Department QMS Standard Process",
           progress: 100,
           completedLessons: 12,
           totalLessons: 12,
@@ -318,108 +338,53 @@ export function AdminProgressPage({
         },
         {
           id: "M3",
-          name: "Machine Learning Fundamentals",
-          progress: 87,
-          completedLessons: 13,
+          name: "Work Instructions",
+          progress: 100,
+          completedLessons: 15,
           totalLessons: 15,
-          status: "in-progress",
+          status: "completed",
         },
         {
           id: "M4",
-          name: "Deep Learning & Neural Networks",
-          progress: 30,
-          completedLessons: 3,
+          name: "LMS Functionality",
+          progress: 100,
+          completedLessons: 10,
           totalLessons: 10,
-          status: "in-progress",
+          status: "completed",
         },
       ],
       assessments: [
         {
           id: "A1",
-          name: "Python Basics Quiz",
+          name: "Module 1 – Sub-1 Department Overview",
+          attemptNumber: 1,
+          marksObtained: 95,
+          totalMarks: 100,
+          status: "pass",
+          completedDate: "2024-12-10",
+        },
+        {
+          id: "A2",
+          name: "Module 1 – Sub-2 Knowledge Check",
           attemptNumber: 1,
           marksObtained: 88,
           totalMarks: 100,
           status: "pass",
-          completedDate: "2024-12-12",
+          completedDate: "2024-12-11",
         },
         {
-          id: "A2",
-          name: "Statistics Assessment",
+          id: "A3",
+          name: "Module 1 – Sub-3 Knowledge Check",
           attemptNumber: 1,
-          marksObtained: 82,
+          marksObtained: 96,
           totalMarks: 100,
           status: "pass",
           completedDate: "2024-12-13",
         },
-        {
-          id: "A3",
-          name: "EDA Mid-term",
-          attemptNumber: 1,
-          marksObtained: 90,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-15",
-        },
+        
       ],
     },
-    {
-      id: "U005",
-      name: "Jessica Taylor",
-      email: "jessica.taylor@company.com",
-      avatar:
-        "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&q=80",
-      completedModules: 3,
-      totalModules: 12,
-      progress: 25,
-      latestScore: 58,
-      lastActive: "1 week ago",
-      modules: [
-        {
-          id: "M1",
-          name: "Python & Statistics Foundations",
-          progress: 75,
-          completedLessons: 6,
-          totalLessons: 8,
-          status: "in-progress",
-        },
-        {
-          id: "M2",
-          name: "Exploratory Data Analysis",
-          progress: 25,
-          completedLessons: 3,
-          totalLessons: 12,
-          status: "in-progress",
-        },
-        {
-          id: "M3",
-          name: "Machine Learning Fundamentals",
-          progress: 0,
-          completedLessons: 0,
-          totalLessons: 15,
-          status: "not-started",
-        },
-        {
-          id: "M4",
-          name: "Deep Learning & Neural Networks",
-          progress: 0,
-          completedLessons: 0,
-          totalLessons: 10,
-          status: "not-started",
-        },
-      ],
-      assessments: [
-        {
-          id: "A1",
-          name: "Python Basics Quiz",
-          attemptNumber: 3,
-          marksObtained: 58,
-          totalMarks: 100,
-          status: "fail",
-          completedDate: "2024-12-10",
-        },
-      ],
-    },
+    
   ];
 
   // Calculate summary statistics
@@ -456,7 +421,7 @@ export function AdminProgressPage({
   return (
     <div className="flex-1 p-8 bg-gray-50">
       {/* Top Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -473,87 +438,12 @@ export function AdminProgressPage({
               </p>
             </div>
           </div>
-          {/* <Avatar className="w-10 h-10">
+          <Avatar className="w-10 h-10">
             <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&q=80" />
             <AvatarFallback>AD</AvatarFallback>
-          </Avatar> */}
+          </Avatar>
         </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">
-            {totalUsers}
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Total Users
-          </p>
-          {/* <div className="mt-4 flex items-center gap-2 text-xs text-green-600">
-            <TrendingUp className="w-4 h-4" />
-            <span>+12% from last month</span>
-          </div> */}
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">
-            {averageCompletion}%
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Average Completion
-          </p>
-          {/* <div className="mt-4 flex items-center gap-2 text-xs text-green-600">
-            <TrendingUp className="w-4 h-4" />
-            <span>+5% from last month</span>
-          </div> */}
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">
-            {totalModulesCompleted}
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Modules Completed
-          </p>
-          {/* <div className="mt-4 flex items-center gap-2 text-xs text-green-600">
-            <TrendingUp className="w-4 h-4" />
-            <span>+18% from last month</span>
-          </div> */}
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <ClipboardCheck className="w-6 h-6 text-orange-600" />
-            </div>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900">
-            {totalAssessments}
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Total Assessments
-          </p>
-          {/* <div className="mt-4 flex items-center gap-2 text-xs text-orange-600">
-            <TrendingUp className="w-4 h-4" />
-            <span>Requires attention</span>
-          </div> */}
-        </div>
-      </div>
+      </div> */}
 
       {/* Search and Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
@@ -568,12 +458,6 @@ export function AdminProgressPage({
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          <Button variant="outline" className="border-gray-300">
-            Filter
-          </Button>
-          <Button variant="outline" className="border-gray-300">
-            Export
-          </Button>
         </div>
       </div>
 
