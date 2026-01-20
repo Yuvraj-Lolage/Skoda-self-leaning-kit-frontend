@@ -13,6 +13,8 @@ import SubmoduleManager from "../super_admin/add_submodule/submodule_manager";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AdminProgressPage } from "../super_admin/view_progress/admin_progress";
 import AdminDashboard from "../super_admin/admin_dashboard/admin_dashboard";
+import axiosInstance from "../../API/axios_instance";
+import { ToastHelper } from "../ui/toast_helper/toast";
 
 
 // Simple WelcomeModal component definition
@@ -102,18 +104,34 @@ const Render_layout: React.FC = () => {
   }, [location.pathname]);
 
 
+
   const fetchTokenData = async () => {
     try {
-      const data = await getTokenData();
+      // 1️⃣ Read from localStorage first
+      const localData = localStorage.getItem("tokenData");
 
-      if (!data) return;
+      if (localData) {
+        const parsed = JSON.parse(localData);
+        setTokenData(parsed);
+        setCurrentUserRole(parsed.role);
+        return;
+      }
 
-      setTokenData(data);
-      setCurrentUserRole(data.role);
+      // 2️⃣ Fallback to JWT (first login / cleared storage)
+      const jwtData = getTokenData();
+      if (!jwtData) return;
+
+      setTokenData(jwtData);
+      setCurrentUserRole(jwtData.role);
+
+      // 3️⃣ Persist initial token data
+      localStorage.setItem("tokenData", JSON.stringify(jwtData));
+
     } catch (err) {
       console.error("Error fetching token data:", err);
     }
   };
+
 
 
   useEffect(() => {
@@ -132,12 +150,12 @@ const Render_layout: React.FC = () => {
 
 
   const CenterLoader = () => {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
-      <div className="h-10 w-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
-    </div>
-  );
-};
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="h-10 w-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  };
 
 
   const renderContent = () => {
@@ -145,7 +163,7 @@ const Render_layout: React.FC = () => {
       case "dashboard":
 
         if (!currentUserRole) {
-          return <CenterLoader/>; // or loader
+          return <CenterLoader />; // or loader
         }
         if (currentUserRole === "Admin") {
           return <AdminDashboard />
@@ -188,23 +206,101 @@ const Render_layout: React.FC = () => {
     }
   };
 
+  const updateWelcomeVisited = async () => {
+    try {
+      await axiosInstance.put('/user/update-welcome-visit', {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+    } catch (err) {
+      console.error("Error updating welcome flag:", err);
+    }
+  }
 
+
+  const updateTokenData = (updates: Partial<any>) => {
+    setTokenData((prev: any) => {
+      const updated = { ...prev, ...updates };
+      localStorage.setItem("tokenData", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+
+  // const handleCloseWelcome = async () => {
+  //   try {
+  //     setShowWelcomeModal(false);
+
+  //     await updateWelcomeVisited();
+  //     updateTokenData({ first_visit_welcome: 1 });
+
+  //     ToastHelper.success("Welcome tour completed!");
+
+  //     setTokenData((prevData: any) => {
+  //       const updatedData = {
+  //         ...prevData,
+  //         first_visit_welcome: 1
+  //       };
+
+  //       // ✅ Persist change
+  //       localStorage.setItem("tokenData", JSON.stringify(updatedData));
+  //       return updatedData;
+  //     });
+
+  //     // Use latest state safely
+  //     if (tokenData?.first_visit_driver === 0) {
+  //       startTour();
+  //     } else {
+  //       console.warn("Already visited Driver Tour");
+  //     }
+
+  //   } catch (err) {
+  //     console.error("Error updating welcome flag:", err);
+  //   }
+  // };
 
   const handleCloseWelcome = async () => {
     try {
       setShowWelcomeModal(false);
-      if (tokenData && tokenData.first_visit_driver == 0) {
-        startTour();
-      }
-      else {
-        console.warn(`Already visited Driver Tour`);
-      }
-      // Update the tokenData to reflect that the welcome has been shown
+
+      await updateWelcomeVisited();
+      ToastHelper.success("Welcome tour completed!");
+
+      setTokenData((prevData: any) => {
+        const updated = {
+          ...prevData,
+          first_visit_welcome: 1
+        };
+
+        localStorage.setItem("tokenData", JSON.stringify(updated));
+        return updated;
+      });
+
     } catch (err) {
       console.error("Error updating welcome flag:", err);
     }
   };
 
+
+  useEffect(() => {
+    if (
+      tokenData?.first_visit_welcome === 1 &&
+      tokenData?.first_visit_driver === 0
+    ) {
+      console.log("Starting driver tour...");
+      startTour();
+    }
+  }, [tokenData]);
+
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("tokenData");
+    setTokenData(null);
+    setCurrentUserRole(null);
+    window.location.href = "/login";
+  };
 
   return (
     <>
@@ -229,10 +325,7 @@ const Render_layout: React.FC = () => {
           {/* Header */}
           <DashboardHeader
             activeTab={activeTab}
-            onLogout={() => {
-              localStorage.removeItem("token");
-              window.location.href = "/login";
-            }}
+            onLogout={logout}
           />
 
           {/* Page Content */}
