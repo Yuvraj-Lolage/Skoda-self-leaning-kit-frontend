@@ -7,6 +7,7 @@ interface ModuleModalProps {
   isOpen: boolean;
   onClose: () => void;
   moduleName: string;
+  moduleStatus: string;
   moduleNumber: number;
   lessonsCount: number;
   duration: string;
@@ -17,12 +18,36 @@ export function ModuleModal({
   isOpen,
   onClose,
   moduleName,
+  moduleStatus,
   moduleNumber,
   lessonsCount,
   duration,
   onStartModule,
 }: ModuleModalProps) {
   if (!isOpen) return null;
+
+
+
+
+
+  const handleOpenModalbuttonState = (status: string) => {
+    if (status === "in_progress") {
+      return <button
+        onClick={onStartModule}
+        className="mt-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-10 py-3 rounded-full font-black text-sm uppercase shadow-lg hover:scale-105 transition-transform active:scale-95"
+      >
+        Start Training
+      </button>;
+    }
+    else {
+      return (
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm font-medium text-yellow-800 shadow-sm">
+      <span className="text-lg">ℹ️</span>
+      <span>Please complete previous modules to unlock this training.</span>
+    </div>
+      )
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -86,12 +111,13 @@ export function ModuleModal({
                   </div>
 
                   {/* Start Module Button (On Board) */}
-                  <button
+                  {/* <button
                     onClick={onStartModule}
                     className="mt-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-10 py-3 rounded-full font-black text-sm uppercase shadow-lg hover:scale-105 transition-transform active:scale-95"
                   >
                     Start Training
-                  </button>
+                  </button> */}
+                  {handleOpenModalbuttonState(moduleStatus)}
                 </div>
               </div>
             </div>

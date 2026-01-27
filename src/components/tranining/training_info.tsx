@@ -53,13 +53,6 @@ export default function TrainingModules() {
                     ? "in_progress"
                     : "locked"
             }));
-
-          // const moduleStatus =
-          //   normalizedSubmodules.every((s: any) => s.status === "completed")
-          //     ? "completed"
-          //     : normalizedSubmodules.some((s: any) => s.status === "in_progress")
-          //     ? "in_progress"
-          //     : "locked";
           let moduleStatus = "locked";
 
           if (normalizedSubmodules.length > 0) {
@@ -285,6 +278,7 @@ export default function TrainingModules() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           moduleName={selectedModule.module_name}
+          moduleStatus={selectedModule.status}
           moduleNumber={modules.indexOf(selectedModule) + 1}
           lessonsCount={selectedModule.submodules?.length || 0}
           duration={selectedModule.submodules?.reduce((acc: number, s: any) => acc + (parseInt(s.duration) || 0), 0) + " mins"}

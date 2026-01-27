@@ -4,7 +4,7 @@ import { MoreVertical, Bell, MessageCircle, Settings, User } from "lucide-react"
 import { useEffect, useState } from "react";
 import { getTokenData } from "../../helper/auth_token";
 
-export function ProfileCard() {
+export function ProfileCard({xp_points}:{xp_points:number | undefined}) {
   const [userData, setUserData] = useState<any>()
   useEffect(() => {
     async function getUserData() {
@@ -66,9 +66,8 @@ export function ProfileCard() {
 
             {/* Points Display */}
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">🥇</span>
               <span className="font-semibold bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-600 bg-clip-text text-transparent">
-                250 Points
+                { xp_points } Points
               </span>
             </div>
 
