@@ -1,7 +1,7 @@
 import { useEffect, type ReactElement } from "react";
 import TrainingVideo from "../training_video/training_video";
 import TrainingDeepLink from "./training_deeplink";
-import TrainingExcel from "./training_Excel";
+import TrainingExcel from "./training_excel";
 import TrainingIframe from "./training_iframe";
 import TrainingPdf from "./training_pdf";
 import TrainingWord from "./training_word";

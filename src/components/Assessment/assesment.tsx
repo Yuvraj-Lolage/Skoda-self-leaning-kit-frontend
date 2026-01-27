@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import type { Method } from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { X, Trophy, Clock, Info, CheckCircle2, Timer, Star } from "lucide-react"; 
+import { X, Trophy, Clock, Info, CheckCircle2, Timer, Star } from "lucide-react";
 import caricature from "../../assets/caricature.jpg";
 import male_caricature from "../../assets/RYAN_2.png";
 import female_caricature from "../../assets/EMMA_2.png";
 import Confetti from "react-confetti";
+import axiosInstance from "../../API/axios_instance";
+import { ToastHelper } from "../ui/toast_helper/toast";
 
 /* -------------------- Types -------------------- */
 type Option = { key: string; text: string };
@@ -17,7 +19,7 @@ type QuizQuestion = {
   moduleId: string;
   question: string;
   options: Option[];
-  correct: number | number[]; 
+  correct: number | number[];
 };
 
 type QuizPageProps = {
@@ -25,14 +27,18 @@ type QuizPageProps = {
   onQuizComplete?: (score: number, total: number) => void;
 };
 
-const TIMER_DURATION = 5; 
+const TIMER_DURATION = 5;
 
 const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
   const { module_id, assessment_id } = useParams<{ module_id: string; assessment_id: string }>();
-  
+
+  const isSubmittingRef = useRef(false);
+
+
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
+  const [assessmentDetails, setAssessmentDetails] = useState<any>(null);
   const [assessmentName, setAssessmentName] = useState<string>("Knowledge Check");
-  const [answers, setAnswers] = useState<Record<number, string[]>>({}); 
+  const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
   const [totalXP, setTotalXP] = useState<number>(0);
@@ -73,11 +79,12 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
       const res = await apiCall("get", `/assessment/by/module/${module_id}`);
       const allRows = Array.isArray(res) ? res : (res?.assessments || []);
       const target = allRows.find((row: any) => String(row.assessment_id) === String(assessment_id) || String(row.id) === String(assessment_id));
-      
+
       if (!target) { setError(`Assessment ${assessment_id} not found.`); return; }
-      
+
       // SYNC ASSESSMENT NAME FROM DATABASE
       setAssessmentName(target.title || target.name || `Assessment ${assessment_id}`);
+      setAssessmentDetails(target);
 
       const rawQuestions = target.questions || target.assessment || [];
       const finalQuestions = rawQuestions.map((item: any, idx: number) => ({
@@ -100,7 +107,7 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
 
   useEffect(() => {
     if (!hasStarted || !quiz.length || showFeedback || isFinished) return;
-    if (timer === 0) { handleConfirm(); return; } 
+    if (timer === 0) { handleConfirm(); return; }
     const interval = setInterval(() => setTimer((t) => t - 1), 1000);
     return () => clearInterval(interval);
   }, [timer, quiz.length, showFeedback, hasStarted, isFinished]);
@@ -112,39 +119,39 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
     }
   };
 
-const handleNext = async () => {
-  if (currentIndex < quiz.length - 1) {
-    setCurrentIndex(prev => prev + 1);
-    setTimer(TIMER_DURATION);
-    setTimerKey(prev => prev + 1);
-  } else {
-    // 1. Calculate time immediately
-    if (startTime) {
-      const endTime = Date.now();
-      const durationMs = endTime - startTime;
-      const totalSeconds = Math.floor(durationMs / 1000);
-      const mins = Math.floor(totalSeconds / 60);
-      const secs = totalSeconds % 60;
-      setTotalTimeTaken(`${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
-    }
+  const handleNext = async () => {
+    if (currentIndex < quiz.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setTimer(TIMER_DURATION);
+      setTimerKey(prev => prev + 1);
+    } else {
+      // 1. Calculate time immediately
+      if (startTime) {
+        const endTime = Date.now();
+        const durationMs = endTime - startTime;
+        const totalSeconds = Math.floor(durationMs / 1000);
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        setTotalTimeTaken(`${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
+      }
 
-    // 2. SHOW THE SCORE SECTION IMMEDIATELY
-    // This ensures the UI updates even if the network is slow
-    setIsFinished(true); 
-    onQuizComplete?.(score, quiz.length);
+      // 2. SHOW THE SCORE SECTION IMMEDIATELY
+      // This ensures the UI updates even if the network is slow
+      setIsFinished(true);
+      onQuizComplete?.(score, quiz.length);
 
-    // 3. Save XP in the background
-    try {
-      await apiCall("post", "/user/update-xp", { 
-        xpEarned: totalXP 
-      });
-      console.log("XP Synced successfully!");
-    } catch (err) {
-      // If this fails, the user still sees their score, but we log the error
-      console.error("Background XP sync failed:", err);
+      // 3. Save XP in the background
+      try {
+        await apiCall("post", "/user/update-xp", {
+          xpEarned: totalXP
+        });
+        console.log("XP Synced successfully!");
+      } catch (err) {
+        // If this fails, the user still sees their score, but we log the error
+        console.error("Background XP sync failed:", err);
+      }
     }
-  }
-};
+  };
 
   const handleOptionClick = (key: string) => {
     if (showFeedback) return;
@@ -167,8 +174,70 @@ const handleNext = async () => {
     return baseXP + speedBonus;
   };
 
+  // const submitAssessmentResult = async () => {
+
+  //   // const data = {
+  //   //   assessmentId, score, dateTaken, moduleId
+  //   // }
+  //   const data = {
+  //     assessmentId: assessmentDetails?.assessment_id,
+  //     moduleId: assessmentDetails?.module_id,
+  //     score: score,
+  //     duration: totalTimeTaken,
+  //     xpEarned: totalXP,
+  //   };
+
+  //   try {
+  //     await axiosInstance.post("/assessment-result/submit", data, {
+  //       headers: {
+  //         Authorization: token ? `Bearer ${token}` : "",
+  //         "Content-Type": "application/json"
+  //       }
+  //     })
+  //     .then((response) => {
+  //       ToastHelper.success("Assessment result submitted successfully!");
+  //     })
+  //     .catch((error) => {
+  //       ToastHelper.error("Failed to submit assessment result.");
+  //     });
+
+  //   }
+  //   catch (error) {
+  //     console.error("Error submitting assessment result:", error);
+  //   }
+  // }
+
+  const submitAssessmentResult = async () => {
+    if (isSubmittingRef.current) return;
+
+    isSubmittingRef.current = true;
+
+    const data = {
+      assessmentId: assessmentDetails?.assessment_id,
+      moduleId: assessmentDetails?.module_id,
+      score,
+      duration: totalTimeTaken,
+      xpEarned: totalXP,
+    };
+
+    try {
+      await axiosInstance.post("/assessment-result/submit", data, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+          "Content-Type": "application/json",
+        },
+      });
+
+      ToastHelper.success("Assessment result submitted successfully!");
+    } catch (error) {
+      ToastHelper.error("Failed to submit assessment result.");
+      console.error(error);
+    }
+  };
+
   const handleConfirm = () => {
     if (showFeedback) return;
+
     const currentQ = quiz[currentIndex];
     const selected = answers[currentIndex] || [];
     const correctIndices = Array.isArray(currentQ.correct) ? currentQ.correct : [Number(currentQ.correct)];
@@ -181,9 +250,16 @@ const handleNext = async () => {
     }
 
     setShowFeedback(true);
-    setTimeout(() => { 
-      setShowFeedback(false); 
-      handleNext(); 
+    setTimeout(async () => {
+      setShowFeedback(false);
+
+      //IF LAST QUESTION → SUBMIT ASSESSMENT
+      if (currentIndex === quiz.length - 1) {
+        await submitAssessmentResult();
+        return;
+      }
+      // OTHERWISE → NEXT QUESTION
+      handleNext();
     }, 2000);
   };
 
@@ -194,11 +270,11 @@ const handleNext = async () => {
     const correctKeys = correctIndices.map(idx => String.fromCharCode(65 + idx));
     const isCorrect = correctKeys.includes(key);
     const isSelected = selected.includes(key);
-    
-    const base: React.CSSProperties = { 
-        padding: 16, borderRadius: 12, fontWeight: 600, marginBottom: 12, transition: "0.3s", 
-        border: "1px solid #eee", cursor: showFeedback ? "default" : "pointer", 
-        display: "flex", alignItems: "center" 
+
+    const base: React.CSSProperties = {
+      padding: 16, borderRadius: 12, fontWeight: 600, marginBottom: 12, transition: "0.3s",
+      border: "1px solid #eee", cursor: showFeedback ? "default" : "pointer",
+      display: "flex", alignItems: "center"
     };
 
     if (!showFeedback) return { ...base, background: isSelected ? "#FFB400" : "#fff", borderColor: isSelected ? "#ea5205" : "#eee" };
@@ -231,7 +307,7 @@ const handleNext = async () => {
       `}</style>
 
       <div style={{ maxWidth: 800, margin: "0 auto" }}>
-        
+
         {!hasStarted && !isFinished && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => navigate(-1)} style={{ animation: "fadeIn 0.3s ease-out" }}></div>
@@ -282,85 +358,85 @@ const handleNext = async () => {
 
         {hasStarted && !isFinished && quiz.length > 0 && (
           <div style={{ background: "#fff", borderRadius: 16, padding: 30, boxShadow: "0 8px 20px rgba(0,0,0,0.1)", position: "relative" }}>
-             <div style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center", color: "#666" }}>
-               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                 <span>Question {currentIndex + 1} of {quiz.length}</span>
-                 <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '12px', background: isMultiChoice ? '#E0F2FE' : '#FEF3C7', color: isMultiChoice ? '#0369A1' : '#92400E', fontWeight: 700, textTransform: 'uppercase' }}>
-                    {isMultiChoice ? "Multiple Choice" : "Single Choice"}
-                  </span>
-               </div>
-               <span style={{ fontWeight: "bold", color: timer < 6 ? "red" : "#333" }}>⏳ {timer}s</span>
-             </div>
-             <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>{quiz[currentIndex].question}</div>
-             
-             {quiz[currentIndex].options.map((opt) => {
-               const isSelected = (answers[currentIndex] || []).includes(opt.key);
-               return (
+            <div style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center", color: "#666" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span>Question {currentIndex + 1} of {quiz.length}</span>
+                <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '12px', background: isMultiChoice ? '#E0F2FE' : '#FEF3C7', color: isMultiChoice ? '#0369A1' : '#92400E', fontWeight: 700, textTransform: 'uppercase' }}>
+                  {isMultiChoice ? "Multiple Choice" : "Single Choice"}
+                </span>
+              </div>
+              <span style={{ fontWeight: "bold", color: timer < 6 ? "red" : "#333" }}>⏳ {timer}s</span>
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 20 }}>{quiz[currentIndex].question}</div>
+
+            {quiz[currentIndex].options.map((opt) => {
+              const isSelected = (answers[currentIndex] || []).includes(opt.key);
+              return (
                 <div key={opt.key} onClick={() => handleOptionClick(opt.key)} style={optionStyle(opt.key)}>
-                  <div style={{ 
-                    width: 24, height: 24, borderRadius: isMultiChoice ? 6 : "50%", border: "2px solid #ddd", marginRight: 15, display: "flex", alignItems: "center", justifyContent: "center", 
+                  <div style={{
+                    width: 24, height: 24, borderRadius: isMultiChoice ? 6 : "50%", border: "2px solid #ddd", marginRight: 15, display: "flex", alignItems: "center", justifyContent: "center",
                     background: isSelected ? "#FFB400" : "transparent", transition: "all 0.2s ease"
                   }}>
                     {isSelected && (isMultiChoice ? <CheckCircle2 className="w-4 h-4 text-white" /> : <div style={{ width: 10, height: 10, borderRadius: "50%", background: "white" }} />)}
                   </div>
                   <strong style={{ marginRight: 12 }}>{opt.key}</strong> {opt.text}
                 </div>
-               );
-             })}
+              );
+            })}
 
-             <div key={timerKey} style={{ marginTop: 20, height: 8, background: "#eee", borderRadius: 4, overflow: "hidden" }}>
-               <div style={{ width: `${(timer / TIMER_DURATION) * 100}%`, height: "100%", background: "#ea5205", transition: "width 1s linear" }} />
-             </div>
+            <div key={timerKey} style={{ marginTop: 20, height: 8, background: "#eee", borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ width: `${(timer / TIMER_DURATION) * 100}%`, height: "100%", background: "#ea5205", transition: "width 1s linear" }} />
+            </div>
 
-             <div style={{ marginTop: 30, display: "flex", justifyContent: "flex-end" }}>
-               <button onClick={handleConfirm} disabled={showFeedback || (answers[currentIndex] || []).length === 0} style={{ padding: "12px 40px", borderRadius: 12, border: "none", background: showFeedback ? "#ccc" : "linear-gradient(90deg, #ea5205, #e91e87ff)", color: "#fff", fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 15px rgba(234, 82, 5, 0.3)" }}>
-                 {showFeedback ? "Checking..." : (currentIndex === quiz.length - 1 ? "Finish Assessment 🏁" : "Confirm & Next ➡")}
-               </button>
-             </div>
+            <div style={{ marginTop: 30, display: "flex", justifyContent: "flex-end" }}>
+              <button onClick={handleConfirm} disabled={showFeedback || (answers[currentIndex] || []).length === 0} style={{ padding: "12px 40px", borderRadius: 12, border: "none", background: showFeedback ? "#ccc" : "linear-gradient(90deg, #ea5205, #e91e87ff)", color: "#fff", fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 15px rgba(234, 82, 5, 0.3)" }}>
+                {showFeedback ? "Checking..." : (currentIndex === quiz.length - 1 ? "Finish Assessment" : "Confirm & Next")}
+              </button>
+            </div>
 
-             <div style={{ position: "fixed", bottom: 40, right: 90, display: "flex", alignItems: "center", gap: 15, zIndex: 100 }}>
-                <div style={{ background: "#fff", padding: "12px 20px", borderRadius: "20px 20px 0px 20px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", fontSize: 14, fontWeight: 600, color: "#333", maxWidth: 200, border: "2px solid #f38005", animation: "fadeIn 0.5s ease-out" }}>
-                  {getGuideMessage()}
-                </div>
-                <img src={male_caricature} style={{ width: 120, height: 120, borderRadius: "0%", objectFit: "cover" }} alt="guide" />
-             </div>
+            <div style={{ position: "fixed", bottom: 40, right: 90, display: "flex", alignItems: "center", gap: 15, zIndex: 100 }}>
+              <div style={{ background: "#fff", padding: "12px 20px", borderRadius: "20px 20px 0px 20px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", fontSize: 14, fontWeight: 600, color: "#333", maxWidth: 200, border: "2px solid #f38005", animation: "fadeIn 0.5s ease-out" }}>
+                {getGuideMessage()}
+              </div>
+              <img src={male_caricature} style={{ width: 120, height: 120, borderRadius: "0%", objectFit: "cover" }} alt="guide" />
+            </div>
           </div>
         )}
 
         {isFinished && (
-           <div style={{ animation: "popIn 0.5s ease-out forwards" }}>
-              <Confetti numberOfPieces={score * 50} recycle={false} />
-              <div style={{ background: "#0b0b0bff", borderRadius: 24, padding: "40px", textAlign: "center", boxShadow: "0 20px 40px rgba(0,0,0,0.12)", position: "relative", overflow: "hidden" }}>
-                <img src={caricature} alt="guide" style={{ width: 180, height: 180, borderRadius: "50%", border: "4px solid #f38005ff", marginBottom: 20, display: "block", marginLeft: "auto", marginRight: "auto", animation: "float 3s infinite ease-in-out", objectFit: "cover" }} />
-                <h2 style={{ fontSize: "2.2rem", fontWeight: 800, margin: "20px 0 5px", color: "#fbf5f5ff" }}>{getScoreData().msg}</h2>
-                <p style={{ color: "#fcfafaff", fontSize: "1.1rem", marginBottom: 30 }}>{getScoreData().sub}</p>
-                
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "20px", marginBottom: 40, flexWrap: "wrap" }}>
-                  <div style={{ textAlign: "center", minWidth: "120px" }}>
-                    <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "#FFB400", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                      <Star className="w-8 h-8 fill-[#FFB400]" /> {totalXP}
-                    </div>
-                    <div style={{ fontSize: "0.7rem", color: "#efeaeaff", textTransform: "uppercase", letterSpacing: 1 }}>Total XP Earned</div>
-                  </div>
-                  <div style={{ height: 40, width: 2, background: "#333" }} />
-                  <div style={{ textAlign: "center", minWidth: "120px" }}>
-                    <div style={{ fontSize: "2.5rem", fontWeight: 900, color: getScoreData().color }}>{score} / {quiz.length}</div>
-                    <div style={{ fontSize: "0.7rem", color: "#efeaeaff", textTransform: "uppercase", letterSpacing: 1 }}>Score</div>
-                  </div>
-                  <div style={{ height: 40, width: 2, background: "#333" }} />
-                  <div style={{ textAlign: "center", minWidth: "120px" }}>
-                    <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "#3b82f6", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                      <Timer className="w-8 h-8" /> {totalTimeTaken}
-                    </div>
-                    <div style={{ fontSize: "0.7rem", color: "#f1ececff", textTransform: "uppercase", letterSpacing: 1 }}>Total Time</div>
-                  </div>
-                </div>
+          <div style={{ animation: "popIn 0.5s ease-out forwards" }}>
+            <Confetti numberOfPieces={score * 50} recycle={false} />
+            <div style={{ background: "#0b0b0bff", borderRadius: 24, padding: "40px", textAlign: "center", boxShadow: "0 20px 40px rgba(0,0,0,0.12)", position: "relative", overflow: "hidden" }}>
+              <img src={caricature} alt="guide" style={{ width: 180, height: 180, borderRadius: "50%", border: "4px solid #f38005ff", marginBottom: 20, display: "block", marginLeft: "auto", marginRight: "auto", animation: "float 3s infinite ease-in-out", objectFit: "cover" }} />
+              <h2 style={{ fontSize: "2.2rem", fontWeight: 800, margin: "20px 0 5px", color: "#fbf5f5ff" }}>{getScoreData().msg}</h2>
+              <p style={{ color: "#fcfafaff", fontSize: "1.1rem", marginBottom: 30 }}>{getScoreData().sub}</p>
 
-                <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
-                  <button onClick={() => navigate("/dashboard")} style={{ padding: "14px 30px", borderRadius: 12, border: "none", background: "linear-gradient(90deg, #d62569, #ea5205)", color: "#fff", fontWeight: 700, cursor: "pointer" }}>Back to Dashboard</button>
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "20px", marginBottom: 40, flexWrap: "wrap" }}>
+                <div style={{ textAlign: "center", minWidth: "120px" }}>
+                  <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "#FFB400", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                    <Star className="w-8 h-8 fill-[#FFB400]" /> {totalXP}
+                  </div>
+                  <div style={{ fontSize: "0.7rem", color: "#efeaeaff", textTransform: "uppercase", letterSpacing: 1 }}>Total XP Earned</div>
+                </div>
+                <div style={{ height: 40, width: 2, background: "#333" }} />
+                <div style={{ textAlign: "center", minWidth: "120px" }}>
+                  <div style={{ fontSize: "2.5rem", fontWeight: 900, color: getScoreData().color }}>{score} / {quiz.length}</div>
+                  <div style={{ fontSize: "0.7rem", color: "#efeaeaff", textTransform: "uppercase", letterSpacing: 1 }}>Score</div>
+                </div>
+                <div style={{ height: 40, width: 2, background: "#333" }} />
+                <div style={{ textAlign: "center", minWidth: "120px" }}>
+                  <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "#3b82f6", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                    <Timer className="w-8 h-8" /> {totalTimeTaken}
+                  </div>
+                  <div style={{ fontSize: "0.7rem", color: "#f1ececff", textTransform: "uppercase", letterSpacing: 1 }}>Total Time</div>
                 </div>
               </div>
-           </div>
+
+              <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
+                <button onClick={() => navigate("/dashboard")} style={{ padding: "14px 30px", borderRadius: 12, border: "none", background: "linear-gradient(90deg, #d62569, #ea5205)", color: "#fff", fontWeight: 700, cursor: "pointer" }}>Back to Dashboard</button>
+              </div>
+            </div>
+          </div>
         )}
 
         {hasStarted && !isFinished && (

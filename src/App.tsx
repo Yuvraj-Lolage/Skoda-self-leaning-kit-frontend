@@ -13,6 +13,11 @@ import Assessment from './components/Assessment/assesment';
 import { AdminProgressPage } from './components/super_admin/view_progress/admin_progress';
 import CreateQuiz from './components/super_admin/create_quiz';
 import AdminDashboard from './components/super_admin/admin_dashboard/admin_dashboard';
+
+
+import { TourProvider } from "./context/tour_context";
+import IndividualViewProgress from './components/Individual_view_progress/individual_view_progress';
+
 function App() {
   const navigate = useNavigate();
   const [token, setToken] = useState(() => {
@@ -22,6 +27,7 @@ function App() {
   const [showWelcome, setShowWelcome] = useState<boolean>(false);
   return (
     <>
+    <TourProvider>
       <Helmet>
         <title>Škoda Auto | SLK</title>
       </Helmet>
@@ -73,8 +79,12 @@ function App() {
           path="/admin/dashboard"
           element={token ? <AdminDashboard/> : <Navigate to="/login" /> }
         />
+      <Route
+          path="/user/view-progress"
+          element={token ? <IndividualViewProgress onBackClick={ () =>{ navigate("/") } }/> : <Navigate to="/login" /> }
+        />
       </Routes>
-    
+      </TourProvider>
     </>
   )
 }
