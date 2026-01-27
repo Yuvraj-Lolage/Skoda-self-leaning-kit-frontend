@@ -246,7 +246,7 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
 
     if (isCorrect) {
       setScore(s => s + 1);
-      setTotalXP(prev => prev + calculateEarnedXP(true, timer, isMultiChoice));
+      setTotalXP(prev => Math.min(50, prev + calculateEarnedXP(true, timer, isMultiChoice)));
     }
 
     setShowFeedback(true);
@@ -333,7 +333,7 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
                           </div>
                           <div className="flex-1 h-px bg-white/20"></div>
                         </div>
-                        <h3 className="text-white font-extrabold text-2xl uppercase tracking-tight leading-tight">Knowledge Check</h3>
+                        <h3 className="text-white font-extrabold text-2xl uppercase tracking-tight leading-tight">{assessmentName}</h3>
                         <div className="flex gap-4 text-xs font-semibold text-gray-300 uppercase tracking-widest">
                           <span className="flex items-center gap-1.5"><Trophy className="w-4 h-4 text-yellow-500" /> {quiz.length || "..."} Questions</span>
                           <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-blue-400" /> Interactive Quiz</span>
