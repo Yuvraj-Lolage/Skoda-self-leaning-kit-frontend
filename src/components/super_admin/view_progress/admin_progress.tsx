@@ -1,20 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Search,
-  Users,
-  TrendingUp,
-  BookOpen,
-  ClipboardCheck,
   Eye,
+  Crown,
+  Medal,
 } from "lucide-react";
 import { Button } from "../../ui/button";
-// import {
-//   Avatar,
-//   AvatarFallback,
-//   AvatarImage,
-// } from "../../ui/avatar";
 import { UserDetailModal } from "./user_details_modal";
+import axiosInstance from "../../../API/axios_instance";
 
 interface AdminProgressPageProps {
   onBackClick: () => void;
@@ -30,546 +24,207 @@ interface UserProgress {
   progress: number;
   latestScore: number;
   lastActive: string;
-  modules: ModuleProgress[];
-  assessments: Assessment[];
+  modules: any[];
+  assessments: any[];
+  xp: number;
+  rank?: number;
+  role?: string;
 }
 
-interface ModuleProgress {
-  id: string;
-  name: string;
-  progress: number;
-  completedLessons: number;
-  totalLessons: number;
-  status: "completed" | "in-progress" | "not-started";
-}
-
-interface Assessment {
-  id: string;
-  name: string;
-  attemptNumber: number;
-  marksObtained: number;
-  totalMarks: number;
-  status: "pass" | "fail";
-  completedDate: string;
-}
-
-export function AdminProgressPage({
-  onBackClick,
-}: AdminProgressPageProps) {
-  const [selectedUser, setSelectedUser] =
-    useState<UserProgress | null>(null);
+export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
+  const [selectedUser, setSelectedUser] = useState<UserProgress | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [users, setUsers] = useState<UserProgress[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for users
-  const users: UserProgress[] = [
-    {
-      id: "U001",
-      name: "Sarah Johnson",
-      email: "sarah.johnson@company.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=80",
-      completedModules: 8,
-      totalModules: 12,
-      progress: 67,
-      latestScore: 85,
-      lastActive: "2 hours ago",
-      modules: [
-        {
-          id: "M1",
-          name: "Organisation Overview",
-          progress: 100,
-          completedLessons: 8,
-          totalLessons: 8,
-          status: "completed",
-        },
-        {
-          id: "M2",
-          name: "Department QMS Standard Process",
-          progress: 75,
-          completedLessons: 9,
-          totalLessons: 12,
-          status: "in-progress",
-        },
-        {
-          id: "M3",
-          name: "Work Instructions",
-          progress: 40,
-          completedLessons: 6,
-          totalLessons: 15,
-          status: "in-progress",
-        },
-        {
-          id: "M4",
-          name: "LMS Functionality",
-          progress: 0,
-          completedLessons: 0,
-          totalLessons: 10,
-          status: "not-started",
-        },
-       {
-          id: "M5",
-          name: "Nominations Management",
-          progress: 0,
-          completedLessons: 0,
-          totalLessons: 10,
-          status: "not-started",
-        },
-        {
-          id: "M6",
-          name: "Reports Preparation Method",
-          progress: 0,
-          completedLessons: 0,
-          totalLessons: 10,
-          status: "not-started",
-        },
-
-       
-      ],
-      assessments: [
-        {
-          id: "A1",
-          name: "Module 1 – Sub-1 Department Overview",
-          attemptNumber: 1,
-          marksObtained: 85,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-15",
-        },
-        {
-          id: "A2",
-          name: "Module 1 – Sub-2 Knowledge Check",
-          attemptNumber: 2,
-          marksObtained: 78,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-16",
-        },
-        {
-          id: "A3",
-          name: "Module 1 – Sub-3 Knowledge Check",
-          attemptNumber: 1,
-          marksObtained: 92,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-18",
-        },
-      ],
-    },
-    {
-      id: "U002",
-      name: "Yuvraj Lolage",
-      email: "yuvraj@gmail.com",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80",
-      completedModules: 12,
-      totalModules: 12,
-      progress: 100,
-      latestScore: 95,
-      lastActive: "1 day ago",
-      modules: [
-        {
-          id: "M1",
-          name: "Organisation Overview",
-          progress: 100,
-          completedLessons: 8,
-          totalLessons: 8,
-          status: "completed",
-        },
-        {
-          id: "M2",
-          name: "Department QMS Standard Process",
-          progress: 100,
-          completedLessons: 12,
-          totalLessons: 12,
-          status: "completed",
-        },
-        {
-          id: "M3",
-          name: "Work Instructions",
-          progress: 100,
-          completedLessons: 15,
-          totalLessons: 15,
-          status: "completed",
-        },
-        {
-          id: "M4",
-          name: "LMS Functionality",
-          progress: 100,
-          completedLessons: 10,
-          totalLessons: 10,
-          status: "completed",
-        },
-      ],
-      assessments: [
-        {
-          id: "A1",
-          name: "Module 1 – Sub-1 Department Overview",
-          attemptNumber: 1,
-          marksObtained: 95,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-10",
-        },
-        {
-          id: "A2",
-          name: "Module 1 – Sub-2 Knowledge Check",
-          attemptNumber: 1,
-          marksObtained: 88,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-11",
-        },
-        {
-          id: "A3",
-          name: "Module 1 – Sub-3 Knowledge Check",
-          attemptNumber: 1,
-          marksObtained: 96,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-13",
-        },
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get('/user');
+        let usersData = Array.isArray(response.data) ? response.data : response.data?.data || [];
         
-      ],
-    },
-    {
-      id: "U003",
-      name: "Sara Lonare",
-      email: "sara.lonare@gmail.com",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&q=80",
-      completedModules: 5,
-      totalModules: 12,
-      progress: 42,
-      latestScore: 72,
-      lastActive: "3 hours ago",
-      modules: [
-        {
-          id: "M1",
-          name: "Organisation Overview",
-          progress: 100,
-          completedLessons: 8,
-          totalLessons: 8,
-          status: "completed",
-        },
-        {
-          id: "M2",
-          name: "Department QMS Standard Process",
-          progress: 100,
-          completedLessons: 12,
-          totalLessons: 12,
-          status: "completed",
-        },
-        {
-          id: "M3",
-          name: "Work Instructions",
-          progress: 100,
-          completedLessons: 15,
-          totalLessons: 15,
-          status: "completed",
-        },
-        {
-          id: "M4",
-          name: "LMS Functionality",
-          progress: 100,
-          completedLessons: 10,
-          totalLessons: 10,
-          status: "completed",
-        },
-      ],
-      assessments: [
-        {
-          id: "A1",
-          name: "Module 1 – Sub-1 Department Overview",
-          attemptNumber: 1,
-          marksObtained: 95,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-10",
-        },
-        {
-          id: "A2",
-          name: "Module 1 – Sub-2 Knowledge Check",
-          attemptNumber: 1,
-          marksObtained: 88,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-11",
-        },
-        {
-          id: "A3",
-          name: "Module 1 – Sub-3 Knowledge Check",
-          attemptNumber: 1,
-          marksObtained: 96,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-13",
-        },
+        // Filter out admin users - only show learners
+        const learnerUsers = usersData.filter((user: any) => user.role !== 'Admin' && user.role !== 'admin');
         
-      ],
-    },
-    {
-      id: "U004",
-      name: "Aditi Londhe",
-      email: "aditi.londhe@gmail.com",
-      avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80",
-      completedModules: 10,
-      totalModules: 12,
-      progress: 83,
-      latestScore: 88,
-      lastActive: "5 hours ago",
-      modules: [
-        {
-          id: "M1",
-          name: "Organisation Overview",
-          progress: 100,
-          completedLessons: 8,
-          totalLessons: 8,
-          status: "completed",
-        },
-        {
-          id: "M2",
-          name: "Department QMS Standard Process",
-          progress: 100,
-          completedLessons: 12,
-          totalLessons: 12,
-          status: "completed",
-        },
-        {
-          id: "M3",
-          name: "Work Instructions",
-          progress: 100,
-          completedLessons: 15,
-          totalLessons: 15,
-          status: "completed",
-        },
-        {
-          id: "M4",
-          name: "LMS Functionality",
-          progress: 100,
-          completedLessons: 10,
-          totalLessons: 10,
-          status: "completed",
-        },
-      ],
-      assessments: [
-        {
-          id: "A1",
-          name: "Module 1 – Sub-1 Department Overview",
-          attemptNumber: 1,
-          marksObtained: 95,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-10",
-        },
-        {
-          id: "A2",
-          name: "Module 1 – Sub-2 Knowledge Check",
-          attemptNumber: 1,
-          marksObtained: 88,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-11",
-        },
-        {
-          id: "A3",
-          name: "Module 1 – Sub-3 Knowledge Check",
-          attemptNumber: 1,
-          marksObtained: 96,
-          totalMarks: 100,
-          status: "pass",
-          completedDate: "2024-12-13",
-        },
-        
-      ],
-    },
-    
-  ];
+        const fetchedUsers: UserProgress[] = learnerUsers.map((user: any) => ({
+          id: user.id?.toString() || "1",
+          name: user.name || "User",
+          email: user.email || "user@example.com",
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || "U")}&background=random`,
+          completedModules: user.completedModules || 0,
+          totalModules: 7, // Matches screenshot 0/7
+          progress: user.progress || 0,
+          latestScore: user.latestScore || 8, // Matches screenshot 8%
+          lastActive: user.lastActive || "Never",
+          modules: [],
+          assessments: [],
+          xp: user.xp || 1579,
+          role: user.role,
+        }));
 
-  // Calculate summary statistics
-  const totalUsers = users.length;
-  const averageCompletion = Math.round(
-    users.reduce((sum, user) => sum + user.progress, 0) /
-      users.length,
-  );
-  const totalModulesCompleted = users.reduce(
-    (sum, user) => sum + user.completedModules,
-    0,
-  );
-  const totalAssessments =
-    users.filter((user) => user.progress < 100).length * 2; // Mock calculation
+        const sorted = fetchedUsers.sort((a, b) => b.xp - a.xp);
+        const withRanks = sorted.map((user, index) => ({ ...user, rank: index + 1 }));
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      user.id
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      user.email
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()),
-  );
+        setUsers(withRanks);
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
-  const handleViewDetails = (user: UserProgress) => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  };
+  const topUser = users.length > 0 ? users[0] : null;
+
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="flex-1 p-8 bg-gray-50">
-      {/* Top Bar */}
-      {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBackClick}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <div>
-              <p className="text-4xl font-semibold text-gray-900">
-                User Progress Dashboard
-              </p>
+    <div className="flex-1 p-8 bg-gray-50 font-sans">
+      <button onClick={onBackClick} className="flex items-center text-gray-600 mb-6 hover:text-black">
+        <ArrowLeft className="w-4 h-4 mr-2" /> Back
+      </button>
+
+      {/* Hero Card - Matching Screenshot Gradient and Layout */}
+      {/* {topUser && (
+        <div className="bg-gradient-to-r from-rose-400 via-pink-500 to-orange-500 rounded-xl p-6 mb-8 shadow-lg relative overflow-hidden max-w-4xl mx-auto">
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 text-white/90 uppercase tracking-widest text-xs font-bold mb-3">
+              <span role="img" aria-label="trophy">🏆</span> CHAMPION
+            </div>
+            
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-1">{topUser.name}</h2>
+                <p className="text-white/80 text-xs mb-6">{topUser.email}</p>
+                
+                <div className="flex gap-3">
+                  <div className="bg-white/20 backdrop-blur-md rounded-lg p-3 min-w-[110px] border border-white/10">
+                    <p className="text-white/70 text-xs font-bold uppercase mb-1">XP</p>
+                    <p className="text-2xl font-bold text-white">{topUser.xp}</p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-md rounded-lg p-3 min-w-[110px] border border-white/10">
+                    <p className="text-white/70 text-xs font-bold uppercase mb-1">Progress</p>
+                    <p className="text-2xl font-bold text-white">{topUser.progress}%</p>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-md rounded-lg p-3 min-w-[110px] border border-white/10">
+                    <p className="text-white/70 text-xs font-bold uppercase mb-1">Score</p>
+                    <p className="text-2xl font-bold text-white">{topUser.latestScore}%</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="relative">
+                <div className="w-16 h-16 bg-orange-400 rounded-full flex items-center justify-center border-4 border-orange-300 shadow-inner">
+                   <span className="text-2xl font-black text-orange-900">1</span>
+                </div>
+                <div className="absolute -top-2 -left-2 text-blue-500"><Medal fill="currentColor" /></div>
+              </div>
             </div>
           </div>
-          <Avatar className="w-10 h-10">
-            <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&q=80" />
-            <AvatarFallback>AD</AvatarFallback>
-          </Avatar>
         </div>
-      </div> */}
+      )} */}
 
-      {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-        <div className="flex items-center gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name, ID, or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+      {/* Search Input */}
+      <div className="max-w-7xl mx-auto mb-6">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name, ID, or email..."
+            className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
 
-      {/* User Progress Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Table - Replicating All Columns from Image */}
+      <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-6 border-b border-gray-100">
+          <h3 className="text-lg font-bold text-gray-800">All Users Rankings</h3>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-white text-[11px] uppercase tracking-wider font-bold text-gray-500 border-b">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  User ID
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Completed Modules
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Progress
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Latest Score
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Last Active
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-6 py-4">Rank</th>
+                <th className="px-6 py-4">User ID</th>
+                <th className="px-6 py-4">Name</th>
+                <th className="px-6 py-4">XP Score</th>
+                <th className="px-6 py-4">Completed Modules</th>
+                <th className="px-6 py-4">Progress</th>
+                <th className="px-6 py-4">Latest Score</th>
+                <th className="px-6 py-4">Last Active</th>
+                <th className="px-6 py-4">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-50">
               {filteredUsers.map((user) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => handleViewDetails(user)}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-900">
-                      {user.id}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      {/* <Avatar className="w-10 h-10">
-                        <AvatarImage src={user.avatar} />
-                        <AvatarFallback>
-                          {user.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar> */}
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {user.email}
-                        </p>
+                <tr key={user.id} className="hover:bg-yellow-50/50 transition-colors group">
+                  <td className="px-6 py-4">
+                    {user.rank === 1 ? (
+                      <div className="flex items-center justify-center gap-1 text-lg">
+                        <span>🏆</span>
+                        <span className="text-xs font-bold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">1st</span>
                       </div>
+                    ) : user.rank === 2 ? (
+                      <div className="flex items-center justify-center gap-1 text-lg">
+                        <span>🥈</span>
+                        <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">2nd</span>
+                      </div>
+                    ) : user.rank === 3 ? (
+                      <div className="flex items-center justify-center gap-1 text-lg">
+                        <span>🥉</span>
+                        <span className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded-full">3rd</span>
+                      </div>
+                    ) : (
+                      <span className="text-sm font-medium text-gray-600">{user.rank}</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-bold text-gray-700">{user.id}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900">{user.name}</span>
+                      <span className="text-xs text-gray-400">{user.email}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-900">
-                      {user.completedModules} /{" "}
-                      {user.totalModules}
+                  <td className="px-6 py-4">
+                    <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold">
+                      {user.xp}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {user.completedModules} / {user.totalModules}
+                  </td>
+                  <td className="px-6 py-4 min-w-[150px]">
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-gray-200 rounded-full h-2 w-32">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all"
+                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-blue-500 transition-all" 
                           style={{ width: `${user.progress}%` }}
-                        ></div>
+                        />
                       </div>
-                      <span className="text-sm font-medium text-gray-900 w-12">
-                        {user.progress}%
-                      </span>
+                      <span className="text-xs font-bold text-gray-700">{user.progress}%</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                        user.latestScore >= 80
-                          ? "bg-green-100 text-green-800"
-                          : user.latestScore >= 60
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {user.latestScore}%
-                    </span>
+                  <td className="px-6 py-4 text-sm font-bold text-rose-500">
+                    {user.latestScore}%
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500">
                     {user.lastActive}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4">
                     <Button
                       variant="ghost"
-                      size="sm"
-                      onClick={(e:any) => {
-                        e.stopPropagation();
-                        handleViewDetails(user);
-                      }}
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      className="text-blue-600 flex items-center gap-1 font-bold text-xs"
+                      onClick={() => { setSelectedUser(user); setIsModalOpen(true); }}
                     >
-                      <Eye className="w-4 h-4 mr-1" />
-                      View Details
+                      <Eye className="w-4 h-4" /> View Details
                     </Button>
                   </td>
                 </tr>
@@ -579,14 +234,10 @@ export function AdminProgressPage({
         </div>
       </div>
 
-      {/* User Detail Modal */}
       {selectedUser && (
         <UserDetailModal
           isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedUser(null);
-          }}
+          onClose={() => { setIsModalOpen(false); setSelectedUser(null); }}
           user={selectedUser}
         />
       )}

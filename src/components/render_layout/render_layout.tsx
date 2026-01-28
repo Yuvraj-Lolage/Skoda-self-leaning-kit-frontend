@@ -315,13 +315,15 @@ const Render_layout: React.FC = () => {
         />
       }
       <div className="min-h-screen bg-gray-50 flex">
-        {/* Sidebar */}
-        <div className="fixed inset-y-0 left-0 w-64">
-          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        </div>
+        {/* Sidebar - Hidden during admin progress view */}
+        {activeTab !== "view-progress" && (
+          <div className="fixed inset-y-0 left-0 w-64">
+            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          </div>
+        )}
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col ml-64">
+        <div className={`flex-1 flex flex-col ${activeTab !== "view-progress" ? "ml-64" : ""}`}>
           {/* Header */}
           <DashboardHeader
             activeTab={activeTab}
