@@ -12,8 +12,8 @@ const weeklyData = [
 ];
 
 const activitiesData = [
-  { name: "training-completed", value: 57, color: "#ec4899" },
-  { name: "training-all", value: 24, color: "#e2e8f0" },
+  { name: "training-completed", value: 11, color: "#ec4899" },
+  { name: "training-all", value: 100, color: "#e2e8f0" },
 ];
 
 export function ChartsSection() {
@@ -45,7 +45,7 @@ export function ChartsSection() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center flex-col">
-                <span className="text-2xl">76%</span>
+                <span className="text-2xl">11%</span>
                 <span className="text-sm text-gray-500">Complete</span>
               </div>
             </div>

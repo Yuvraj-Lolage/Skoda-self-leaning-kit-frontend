@@ -17,6 +17,7 @@ import AdminDashboard from './components/super_admin/admin_dashboard/admin_dashb
 
 import { TourProvider } from "./context/tour_context";
 import IndividualViewProgress from './components/Individual_view_progress/individual_view_progress';
+import ManageAssessments from './components/super_admin/add_quiz/create_quiz';
 
 function App() {
   const navigate = useNavigate();
@@ -56,6 +57,10 @@ function App() {
         <Route
           path="/add-submodule"
           element={token ? <SubmoduleManager /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/add-assessment"
+          element={token ? <ManageAssessments /> : <Navigate to="/login" />}
         />
         <Route
           path="/module/:module_id/submodule/:sub_id"

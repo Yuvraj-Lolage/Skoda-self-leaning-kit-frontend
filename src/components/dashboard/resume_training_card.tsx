@@ -2,15 +2,16 @@ import React from "react";
 import { Button } from "../ui/button";
 
 export default function ResumeTrainingCard() {
-  const completedModules = 3;
+  const completedModules = 0;
   const totalModules = 8;
-  const percent = Math.round((completedModules / totalModules) * 100);
+  const percent = 11;
+  // const percent = Math.round((completedModules / totalModules) * 100);
 
   return (
     <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-2xl text-white shadow-lg" id="resume-training-section">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-semibold">LMS Functionality</h3>
+          <h3 className="text-lg font-semibold">Organization Overview</h3>
           <p className="text-sm text-white/90">
            how to interact with various LMS features  
           </p>

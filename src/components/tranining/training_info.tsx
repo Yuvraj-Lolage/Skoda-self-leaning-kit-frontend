@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckCircle, Play, ChevronDown, ChevronUp, Info } from "lucide-react"; 
+import { CheckCircle, Play, ChevronDown, ChevronUp, Info } from "lucide-react";
 import axiosInstance from "../../API/axios_instance";
 import { useNavigate } from "react-router-dom";
 import { ModuleModal } from "../modules/ModuleModal";
@@ -48,28 +48,31 @@ export default function TrainingModules() {
 
       if (response.status === 200) {
         const normalizedModules = response.data.modules.modules.map((module: any) => {
+
+          // 🔹 Submodules: direct mapping from backend
           const normalizedSubmodules = (module.submodules || [])
             .filter(Boolean)
-            .sort((a: any, b: any) => a.submodule_order_index - b.submodule_order_index)
+            .sort(
+              (a: any, b: any) =>
+                a.submodule_order_index - b.submodule_order_index
+            )
             .map((sub: any) => ({
               ...sub,
               status:
-                sub.submodule_status === 1
+                sub.submodule_status === 2
                   ? "completed"
-                  : sub.submodule_id === module.current_submodule_id
+                  : sub.submodule_status === 1
                     ? "in_progress"
                     : "locked"
             }));
-          let moduleStatus = "locked";
 
-          if (normalizedSubmodules.length > 0) {
-            if (normalizedSubmodules.every((s: any) => s.status === "completed")) {
-              moduleStatus = "completed";
-            } else if (normalizedSubmodules.some((s: any) => s.status === "in_progress")) {
-              moduleStatus = "in_progress";
-            }
-          }
-
+          // 🔹 Module status: direct mapping from backend
+          const moduleStatus =
+            module.status === 2
+              ? "completed"
+              : module.status === 1
+                ? "in_progress"
+                : "locked";
 
           return {
             ...module,
@@ -84,6 +87,7 @@ export default function TrainingModules() {
       console.error("Error loading modules:", error);
     }
   };
+
 
 
   useEffect(() => {
@@ -159,8 +163,6 @@ export default function TrainingModules() {
             {modules.map((module, index) => {
               const isCompleted = module.status === "completed";
               const isCurrent = module.status === "in_progress";
-
-              module.status === "completed" && setCompletedModulesCount(prev => prev + 1);
 
               return (
                 <div key={module.module_id} className="border rounded-xl border-top-0 border-gray-200">

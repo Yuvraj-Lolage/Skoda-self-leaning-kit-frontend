@@ -16,6 +16,7 @@ import AdminDashboard from "../super_admin/admin_dashboard/admin_dashboard";
 import axiosInstance from "../../API/axios_instance";
 import { ToastHelper } from "../ui/toast_helper/toast";
 import IndividualViewProgress from "../Individual_view_progress/individual_view_progress";
+import ManageAssessments from "../super_admin/add_quiz/create_quiz";
 
 
 // Simple WelcomeModal component definition
@@ -155,6 +156,9 @@ const Render_layout: React.FC = () => {
 
       case "add-submodule":
         return <SubmoduleManager />;
+      
+      case "add-quiz":
+        return <ManageAssessments/>;
 
 
       case "view-progress":
