@@ -15,6 +15,7 @@ import { AdminProgressPage } from "../super_admin/view_progress/admin_progress";
 import AdminDashboard from "../super_admin/admin_dashboard/admin_dashboard";
 import axiosInstance from "../../API/axios_instance";
 import { ToastHelper } from "../ui/toast_helper/toast";
+import IndividualViewProgress from "../Individual_view_progress/individual_view_progress";
 
 
 // Simple WelcomeModal component definition
@@ -60,39 +61,6 @@ const Render_layout: React.FC = () => {
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
-  const startTour = () => {
-    const driverObj = driver({
-      showProgress: true,
-      steps: [
-        {
-          element: "#sidebar-dashboard",
-          popover: {
-            title: "Dashboard",
-            description: "This is where you see your overall progress.",
-            popoverClass: "custom-popover", // 👈 custom class
-          }
-        },
-        {
-          element: "#sidebar-modules",
-          popover: {
-            title: "Modules",
-            description: "Here you’ll find all training modules.",
-            popoverClass: "custom-popover"
-          }
-        },
-        {
-          element: "#sidebar-profile",
-          popover: {
-            title: "Profile",
-            description: "Update your personal information here.",
-            popoverClass: "custom-popover"
-          }
-        }
-      ]
-    });
-
-    driverObj.drive();
-  };
 
   useEffect(() => {
     const path = location.pathname;
@@ -190,16 +158,18 @@ const Render_layout: React.FC = () => {
 
 
       case "view-progress":
-        return (
-          <AdminProgressPage
+         if (!currentUserRole) {
+          return <CenterLoader />;
+        }
+        if (currentUserRole === "Admin") {
+          return  <AdminProgressPage
             onBackClick={() => navigate("/")}
           />
-        );
-        return (
-          <AdminProgressPage
-            onBackClick={() => navigate("/")}
-          />
-        );
+        }
+        else {
+          navigate("/user/view-progress");
+        }
+        break;
       default:
         return <Dashboard />;
         return <Dashboard />;
@@ -217,48 +187,6 @@ const Render_layout: React.FC = () => {
       console.error("Error updating welcome flag:", err);
     }
   }
-
-
-  const updateTokenData = (updates: Partial<any>) => {
-    setTokenData((prev: any) => {
-      const updated = { ...prev, ...updates };
-      localStorage.setItem("tokenData", JSON.stringify(updated));
-      return updated;
-    });
-  };
-
-
-  // const handleCloseWelcome = async () => {
-  //   try {
-  //     setShowWelcomeModal(false);
-
-  //     await updateWelcomeVisited();
-  //     updateTokenData({ first_visit_welcome: 1 });
-
-  //     ToastHelper.success("Welcome tour completed!");
-
-  //     setTokenData((prevData: any) => {
-  //       const updatedData = {
-  //         ...prevData,
-  //         first_visit_welcome: 1
-  //       };
-
-  //       // ✅ Persist change
-  //       localStorage.setItem("tokenData", JSON.stringify(updatedData));
-  //       return updatedData;
-  //     });
-
-  //     // Use latest state safely
-  //     if (tokenData?.first_visit_driver === 0) {
-  //       startTour();
-  //     } else {
-  //       console.warn("Already visited Driver Tour");
-  //     }
-
-  //   } catch (err) {
-  //     console.error("Error updating welcome flag:", err);
-  //   }
-  // };
 
   const handleCloseWelcome = async () => {
     try {
@@ -289,7 +217,7 @@ const Render_layout: React.FC = () => {
       tokenData?.first_visit_driver === 0
     ) {
       console.log("Starting driver tour...");
-      startTour();
+      // startTour();
     }
   }, [tokenData]);
 

@@ -1,12 +1,19 @@
 import { useState, useEffect } from "react";
-import { CheckCircle, Play, ChevronDown, ChevronUp, Info } from "lucide-react"; // Added Info icon
+import { CheckCircle, Play, ChevronDown, ChevronUp, Info } from "lucide-react"; 
 import axiosInstance from "../../API/axios_instance";
 import { useNavigate } from "react-router-dom";
 import { ModuleModal } from "../modules/ModuleModal";
 import TrainingAnalysis from "../ui/training_analysis";
 import { getTokenData } from "../../helper/auth_token";
 
+
+import { usePageTour } from "../../hooks/use_page_tour";
+import { TOUR_KEYS } from "../../constants/tour_keys";
+import { trainingTourSteps } from "../../tours/training_tour";
+
 export default function TrainingModules() {
+  usePageTour(TOUR_KEYS.TRAINING, trainingTourSteps);
+
   const navigate = useNavigate();
   const [token, setToken] = useState(() => {
     const storedToken = localStorage.getItem("token");
@@ -145,7 +152,7 @@ export default function TrainingModules() {
       </div>
 
       <TrainingAnalysis userName={userData?.name} totalModules={modules.length} completedModules={completedModulesCount} currentSession="" />
-      <div className="p-6">
+      <div className="p-6" id="training-modules">
         <div className="space-y-4">
           <h4 className="text-base font-medium text-gray-800">Training Modules</h4>
           <div className="grid grid-cols-1 gap-3">
@@ -189,6 +196,7 @@ export default function TrainingModules() {
                         onClick={(e) => handleOpenModal(e, module)}
                         className="p-2 hover:bg-white/50 rounded-full transition-colors text-gray-500 hover:text-blue-600"
                         title="View Module Details"
+                        id="module-info-button"
                       >
                         <Info className="w-5 h-5" />
                       </button>
@@ -204,7 +212,7 @@ export default function TrainingModules() {
                       <div className="absolute left-12 top-0 bottom-0 w-px bg-gray-300"></div>
 
                       {module.submodules.map((sub: any) => (
-                        <div key={sub.submodule_id} className="relative flex items-start mb-5">
+                        <div key={sub.submodule_id} className="relative flex items-start mb-5" id="submodules-card">
 
                           {/* Timeline dot + horizontal line */}
                           <div className="absolute left-2 top-6 flex items-center">

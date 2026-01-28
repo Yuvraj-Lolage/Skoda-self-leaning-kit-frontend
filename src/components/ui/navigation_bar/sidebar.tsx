@@ -12,13 +12,17 @@ import {
 import { useEffect, useState } from "react";
 import { getTokenData } from "../../../helper/auth_token";
 
+import { usePageTour } from "../../../hooks/use_page_tour";
+import { TOUR_KEYS } from "../../../constants/tour_keys";
+import { dashboardTourSteps } from "../../../tours/dashboard_tour";
+
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
-
+  usePageTour(TOUR_KEYS.DASHBOARD, dashboardTourSteps);
   const [navigationItems, setNavigationItems] = useState<any[]>([]);
 
   const userItems = [

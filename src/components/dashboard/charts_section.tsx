@@ -20,7 +20,7 @@ export function ChartsSection() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Activities Chart */}
-      <Card className="bg-white shadow-lg rounded-xl border-0">
+      <Card className="bg-white shadow-lg rounded-xl border-0" id="progress-chart">
         <CardHeader>
           <CardTitle>Training Progress</CardTitle>
         </CardHeader>

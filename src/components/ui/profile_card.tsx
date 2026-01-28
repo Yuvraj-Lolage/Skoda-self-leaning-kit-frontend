@@ -17,7 +17,7 @@ export function ProfileCard({xp_points}:{xp_points:number | undefined}) {
     getUserData();
   }, [])
   return (
-    <Card className="bg-white shadow-lg rounded-xl border-0">
+    <Card className="bg-white shadow-lg rounded-xl border-0" id="user-profile-section">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">

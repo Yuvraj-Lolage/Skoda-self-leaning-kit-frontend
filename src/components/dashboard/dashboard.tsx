@@ -7,8 +7,14 @@ import { Helmet } from "react-helmet";
 import { getToken } from "../../helper/auth_token";
 import axiosInstance from "../../API/axios_instance";
 
+
+import { usePageTour } from "../../hooks/use_page_tour";
+import { TOUR_KEYS } from "../../constants/tour_keys";
+import { dashboardTourSteps } from "../../tours/dashboard_tour";
+
 export default function Dashboard() {
 
+    // usePageTour(TOUR_KEYS.DASHBOARD, dashboardTourSteps);
     const [token] = React.useState<string | null>(getToken());
 
     const [userData, setUserData] = React.useState<any>(null);
@@ -46,8 +52,7 @@ export default function Dashboard() {
             <div>
                 <div className="flex-1 p-6 flex gap-6">
                     {/* Left Content Area */}
-                    <LeftPanel xp_points={ userData ? userData.xp : 0  } />
-
+                        <LeftPanel xp_points={userData ? userData.xp : 0} />
                     {/* Right Panel */}
                     <div className="flex-1 space-y-6">
                         <ResumeTrainingCard />
