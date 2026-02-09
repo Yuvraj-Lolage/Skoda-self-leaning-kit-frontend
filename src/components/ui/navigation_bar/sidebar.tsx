@@ -60,7 +60,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
       {/* Logo */}
       <div className="py-6 px-3 border-b border-white/10">
         <h2 className="text-center text-1xl font-medium">
-          Volkswagen Group Academy - VG/3
+            Volkswagen Group Academy - VG/3
         </h2>
       </div>
 

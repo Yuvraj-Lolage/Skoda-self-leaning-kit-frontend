@@ -253,11 +253,30 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
     setTimeout(async () => {
       setShowFeedback(false);
 
-      //IF LAST QUESTION → SUBMIT ASSESSMENT
       if (currentIndex === quiz.length - 1) {
         await submitAssessmentResult();
+
+        // ⬇️ IMPORTANT: mark finished
+        setIsFinished(true);
+
+        // calculate time if not already done
+        if (startTime) {
+          const endTime = Date.now();
+          const durationMs = endTime - startTime;
+          const totalSeconds = Math.floor(durationMs / 1000);
+          const mins = Math.floor(totalSeconds / 60);
+          const secs = totalSeconds % 60;
+          setTotalTimeTaken(
+            `${mins.toString().padStart(2, "0")}:${secs
+              .toString()
+              .padStart(2, "0")}`
+          );
+        }
+
+        onQuizComplete?.(score, quiz.length);
         return;
       }
+
       // OTHERWISE → NEXT QUESTION
       handleNext();
     }, 2000);

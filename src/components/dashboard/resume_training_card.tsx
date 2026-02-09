@@ -1,23 +1,72 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../API/axios_instance";
 
 export default function ResumeTrainingCard() {
-  const completedModules = 0;
-  const totalModules = 8;
-  const percent = 11;
-  // const percent = Math.round((completedModules / totalModules) * 100);
+  const navigate = useNavigate();
+
+  const [totalCompletedModules, setTotalCompletedModules] =
+    useState<number>(0);
+  const [allModules, setAllModules] = useState<number>(0);
+
+  const fetchCompletedModules = async () => {
+    try {
+      const res = await axiosInstance.get(
+        "/module/with-submodules/with-status/all",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setTotalCompletedModules(
+        res.data?.modules?.total_completed_modules ?? 0
+      );
+    } catch (err) {
+      console.error("Failed to load module progress", err);
+    }
+  };
+
+  const fetchAllModules = async () => {
+    try {
+      const res = await axiosInstance.get("/module/all", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      setAllModules(res.data?.length ?? 0);
+    } catch (err) {
+      console.error("Error fetching all modules", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompletedModules();
+    fetchAllModules();
+  }, []);
+
+  // ✅ DERIVED VALUE (always up-to-date)
+  const percentage =
+    allModules > 0
+      ? Math.round((totalCompletedModules / allModules) * 100)
+      : 0;
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-2xl text-white shadow-lg" id="resume-training-section">
+    <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-2xl text-white shadow-lg">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-semibold">Organization Overview</h3>
+          <h3 className="text-lg font-semibold">
+            Organization Overview
+          </h3>
           <p className="text-sm text-white/90">
-           how to interact with various LMS features  
+            New Submodule
           </p>
 
           <p className="text-xs mt-3 opacity-90">
-            {completedModules} of {totalModules} modules completed
+            {totalCompletedModules} of {allModules} modules completed
           </p>
         </div>
 
@@ -30,22 +79,22 @@ export default function ResumeTrainingCard() {
       <div className="mt-4">
         <div className="flex justify-between text-xs mb-1 opacity-90">
           <span></span>
-          <span>{percent}%</span>
+          <span>{percentage}%</span>
         </div>
 
         <div className="w-full h-2 bg-white/30 rounded-full">
           <div
             className="h-2 bg-white rounded-full transition-all"
-            style={{ width: `${percent}%` }}
-          ></div>
+            style={{ width: `${percentage}%` }}
+          />
         </div>
       </div>
 
-      {/* Action Button */}
       <div className="mt-6">
         <Button
           className="w-full bg-white text-blue-700 hover:bg-white/90 font-semibold"
           variant="ghost"
+          onClick={() => navigate("/module/1/submodule/17")}
         >
           Resume Training
         </Button>

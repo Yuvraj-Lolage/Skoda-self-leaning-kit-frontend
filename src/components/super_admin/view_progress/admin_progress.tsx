@@ -36,16 +36,20 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [users, setUsers] = useState<UserProgress[]>([]);
+  const [modules, setModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get('/user');
+        const response = await axiosInstance.get('/user/all',{
+          headers:{
+            Authorization: `Bearer ${ localStorage.getItem('token') }`
+          }
+        });
         let usersData = Array.isArray(response.data) ? response.data : response.data?.data || [];
         
-        // Filter out admin users - only show learners
         const learnerUsers = usersData.filter((user: any) => user.role !== 'Admin' && user.role !== 'admin');
         
         const fetchedUsers: UserProgress[] = learnerUsers.map((user: any) => ({
@@ -60,7 +64,7 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
           lastActive: user.lastActive || "Never",
           modules: [],
           assessments: [],
-          xp: user.xp || 1579,
+          xp: user.xp || 0,
           role: user.role,
         }));
 
@@ -73,7 +77,25 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
         setLoading(false);
       }
     };
+
+
+    const fetchModules = async () => {
+      try {
+        const response = await axiosInstance.get('/module/all',{
+          headers:{
+            Authorization: `Bearer ${ localStorage.getItem('token') }`
+          }
+        });
+        setModules(response.data);
+      } catch (error) {
+        setLoading(false);
+        console.log(error);
+        
+      }
+    };
+
     fetchUsers();
+    fetchModules();
   }, []);
 
   const topUser = users.length > 0 ? users[0] : null;
@@ -199,17 +221,17 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {user.completedModules} / {user.totalModules}
+                    {user.completedModules || 0} / {modules.length}
                   </td>
                   <td className="px-6 py-4 min-w-[150px]">
                     <div className="flex items-center gap-3">
                       <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-blue-500 transition-all" 
-                          style={{ width: `${user.progress}%` }}
+                          style={{ width: `${user.progress || 0}%` }}
                         />
                       </div>
-                      <span className="text-xs font-bold text-gray-700">{user.progress}%</span>
+                      <span className="text-xs font-bold text-gray-700">{user.progress || 0}%</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm font-bold text-rose-500">

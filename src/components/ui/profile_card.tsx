@@ -44,7 +44,7 @@ export function ProfileCard({xp_points}:{xp_points:number | undefined}) {
                   strokeWidth="8"
                   fill="transparent"
                   strokeDasharray={`${2 * Math.PI * 58}`}
-                  strokeDashoffset={`${2 * Math.PI * 58 * (1 - 0.75)}`}
+                  strokeDashoffset={`${2 * Math.PI * 58 * (100)}`}
                   className="transition-all duration-500"
                 />
                 <defs>

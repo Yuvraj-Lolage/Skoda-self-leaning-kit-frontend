@@ -94,41 +94,47 @@ export default function IndividualViewProgress({ onBackClick }: GradesPageProps)
   /* ================= DATA TRANSFORM (UNCHANGED LOGIC) ================= */
 
   const assessmentData = useMemo(() => {
-    return results.map((row) => {
-      const maxScore = 100;
+  const passPercentage = 50; // 🔧 adjust if needed (e.g. 60)
 
-      const bestAttempt = row.attempts.reduce(
-        (best: any, cur: any) =>
-          cur.score > best.score ? cur : best,
-        row.attempts[0]
-      );
+  return results.map((row) => {
+    const maxScore = 10; // assuming max score is 10
 
-      const latestAttempt =
-        row.attempts[row.attempts.length - 1];
+    // 🏆 Best attempt
+    const bestAttempt = row.attempts.reduce(
+      (best: any, cur: any) =>
+        cur.score > best.score ? cur : best,
+      row.attempts[0]
+    );
 
-      return {
-        id: row.assessment_id,
-        name: `Module ${row.module_id} – Assessment ${row.assessment_id}`,
-        bestScore: bestAttempt.score,
-        bestPercentage: Math.round(
-          (bestAttempt.score / maxScore) * 100
-        ),
-        latestStatus:
-          latestAttempt.status === "PASSED"
-            ? "passed"
-            : "failed",
-        attempts: row.attempts.map((a: any) => ({
-          attemptNumber: a.attemptNo,
-          score: a.score,
-          maxScore,
-          date: new Date(a.attemptedAt).toLocaleDateString(),
-          status:
-            a.status === "PASSED" ? "passed" : "failed",
-          timeSpent: `${a.duration} min`,
-        })),
-      };
-    });
-  }, [results]);
+    // 🧮 Best percentage
+    const bestPercentage = Math.round(
+      (bestAttempt.score / maxScore) * 100
+    );
+
+    return {
+      id: row.assessment_id,
+      name: `Module ${row.module_id} – Assessment ${row.assessment_id}`,
+
+      bestScore: bestAttempt.score,
+      bestPercentage,
+
+      // ✅ STATUS BASED ON BEST ATTEMPT
+      latestStatus:
+        bestPercentage >= passPercentage ? "passed" : "failed",
+
+      attempts: row.attempts.map((a: any) => ({
+        attemptNumber: a.attemptNo,
+        score: a.score,
+        maxScore,
+        date: new Date(a.attemptedAt).toLocaleDateString(),
+        status:
+          a.status === "PASSED" ? "passed" : "failed",
+        timeSpent: `${a.duration} min`,
+      })),
+    };
+  });
+}, [results]);
+
 
   /* ================= STATS (UNCHANGED) ================= */
 
@@ -288,7 +294,7 @@ export default function IndividualViewProgress({ onBackClick }: GradesPageProps)
                           {a.name}
                         </td>
                         <td className="p-4 text-center">
-                          {a.bestScore}/100
+                          {a.bestScore}/10
                         </td>
                         <td className="p-4 text-center">
                           {a.attempts.length}
