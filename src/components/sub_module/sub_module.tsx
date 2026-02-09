@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Share2, Play, Pause, Volume2, Settings, Maximize, ChevronDown, ChevronRight, Check, Circle } from "lucide-react";
+import { ArrowLeft, Check, Circle } from "lucide-react";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
 import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../API/axios_instance";
-import TrainingVideo from "../ui/training_video/training_video";
 import { Tabs, TabsContent, TabsTrigger, TabsList } from "../ui/tabs";
 import ContentRenderer from "../ui/container_renderer/container_renderer";
 
@@ -18,12 +16,6 @@ interface Lesson {
     title: string;
     duration: string;
     status: "completed" | "current" | "in_progress" | "locked";
-}
-
-interface CourseSection {
-    id: string;
-    title: string;
-    lessons: Lesson[];
 }
 
 interface ModuleData {
@@ -46,10 +38,6 @@ interface SubmoduleData {
     created_at: string;
 }
 
-interface Assessment {
-
-}
-
 interface AssessmentData {
     assessment_id: string;
     module_id: string;
@@ -60,14 +48,13 @@ interface AssessmentData {
 }
 
 
-export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
+export function Submodule({ }: CoursePlayerPageProps) {
     // const { module_id, sub_id } = useParams();
     const param = useParams();
     const navigate = useNavigate();
 
-    const [isPlaying, setIsPlaying] = useState(false);
     const [activeTab, setActiveTab] = useState("overview");
-    const [currentLesson, setCurrentLesson] = useState("lesson-1-1");
+    const [, setCurrentLesson] = useState("lesson-1-1");
 
     const [moduleData, setModuleData] = useState<ModuleData | null>(null);
     const [submoduleData, setSubModuleData] = useState<SubmoduleData | null>(null);
@@ -127,16 +114,6 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
         fetchSubModulesData();
         fetchAssessmentData();
     }, [])
-
-    const [openSections, setOpenSections] = useState<string[]>(["section-1", "section-2"]);
-
-    const toggleSection = (sectionId: string) => {
-        setOpenSections(prev =>
-            prev.includes(sectionId)
-                ? prev.filter(id => id !== sectionId)
-                : [...prev, sectionId]
-        );
-    };
 
     const handleLessonClick = (lessonId: string) => {
         setCurrentLesson(lessonId);

@@ -14,7 +14,7 @@ const TrainingAnalysis: React.FC<TrainingAnalysisProps> = ({
   currentSession,
 }) => {
 
-     const [overallPercentage, setOverallPercentage] = useState(11);
+     const [overallPercentage] = useState(11);
   return (
     <div className="p-6 h-auto">
       {/* Overall Progress Card */}

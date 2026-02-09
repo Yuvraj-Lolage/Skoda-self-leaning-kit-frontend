@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   BookOpen,
-  MessageCircle,
   GraduationCap,
   Settings,
   FolderPlus,

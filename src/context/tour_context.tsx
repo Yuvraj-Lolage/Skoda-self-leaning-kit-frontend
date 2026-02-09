@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import axiosInstance from "../API/axios_instance";
 
 const TourContext = createContext<any>(null);
 
 export const TourProvider = ({ children }: { children: any }) => {
-    const [token, setToken] = useState<string | null>(() => {
+    const [token] = useState<string | null>(() => {
         const storedToken = localStorage.getItem("token")
         return storedToken ? storedToken : null;
     }

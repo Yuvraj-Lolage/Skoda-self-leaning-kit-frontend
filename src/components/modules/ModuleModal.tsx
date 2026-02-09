@@ -1,4 +1,3 @@
-import React from "react";
 import male_caricature from "../../assets/RYAN_2.png";
 import female_caricature from "../../assets/EMMA_2.png";
 import { X } from "lucide-react";

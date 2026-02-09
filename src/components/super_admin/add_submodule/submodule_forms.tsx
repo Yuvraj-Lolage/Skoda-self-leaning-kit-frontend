@@ -1,9 +1,8 @@
 import { useState } from "react";
 import type { Submodule } from "../../../types/SubModule";
-import axiosInstance from "../../../API/axios_instance";
-import axios from "axios";
 import { ToastHelper } from "../../ui/toast_helper/toast";
 import { Toaster } from "react-hot-toast";
+import axiosInstance from "../../../API/axios_instance";
 
 interface Props {
   moduleId: number;
@@ -65,22 +64,22 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
     }
   };
 
-  const getErrorMessage = (fileType: string) => {
-    switch (fileType) {
-      case "Video":
-        return "Please upload a video file (MP4, WebM)";
-      case "PDF":
-        return "Please upload a PDF document";
-      case "Presentation":
-        return "Please upload a PPT or PPTX file";
-      case "Excel":
-        return "Please upload an Excel file";
-      case "word":
-        return "Please upload a Word document";
-      default:
-        return "Invalid file type selected";
-    }
-  };
+  // const getErrorMessage = (fileType: string) => {
+  //   switch (fileType) {
+  //     case "Video":
+  //       return "Please upload a video file (MP4, WebM)";
+  //     case "PDF":
+  //       return "Please upload a PDF document";
+  //     case "Presentation":
+  //       return "Please upload a PPT or PPTX file";
+  //     case "Excel":
+  //       return "Please upload an Excel file";
+  //     case "word":
+  //       return "Please upload a Word document";
+  //     default:
+  //       return "Invalid file type selected";
+  //   }
+  // };
 
 
 
@@ -148,8 +147,8 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/submodule/create",
+      await axiosInstance.post(
+        "/submodule/create",
         formData,
         {
           headers: {

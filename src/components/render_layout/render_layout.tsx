@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../ui/navigation_bar/sidebar";
-import Training_info from "../tranining/training_info";
 import Dashboard from "../dashboard/dashboard";
 import DashboardHeader from "../ui/dashboard_header/dashboard_header";
 import { Helmet } from "react-helmet";
-import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { getTokenData } from "../../helper/auth_token";
 import WelcomeScreen from "../ui/welcome_screen/welcome_screen";
@@ -15,46 +13,45 @@ import { AdminProgressPage } from "../super_admin/view_progress/admin_progress";
 import AdminDashboard from "../super_admin/admin_dashboard/admin_dashboard";
 import axiosInstance from "../../API/axios_instance";
 import { ToastHelper } from "../ui/toast_helper/toast";
-import IndividualViewProgress from "../Individual_view_progress/individual_view_progress";
+// import IndividualViewProgress from "../Individual_view_progress/individual_view_progress";
 import ManageAssessments from "../super_admin/add_quiz/create_quiz";
 
 
 // Simple WelcomeModal component definition
-type WelcomeModalProps = {
-  onStartTour: () => void;
-  onSkip: () => void;
-};
+// type WelcomeModalProps = {
+//   onStartTour: () => void;
+//   onSkip: () => void;
+// };
 
-const WelcomeModal: React.FC<WelcomeModalProps> = ({ onStartTour, onSkip }) => (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-    <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-      <h2 className="text-2xl font-bold mb-4">Welcome!</h2>
-      <p className="mb-6">Would you like a quick tour of the dashboard?</p>
-      <div className="flex justify-center gap-4">
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          onClick={onStartTour}
-        >
-          Start Tour
-        </button>
-        <button
-          className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-          onClick={onSkip}
-        >
-          Skip
-        </button>
-      </div>
-    </div>
-  </div>
-);
+// const WelcomeModal: React.FC<WelcomeModalProps> = ({ onStartTour, onSkip }) => (
+//   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+//     <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+//       <h2 className="text-2xl font-bold mb-4">Welcome!</h2>
+//       <p className="mb-6">Would you like a quick tour of the dashboard?</p>
+//       <div className="flex justify-center gap-4">
+//         <button
+//           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+//           onClick={onStartTour}
+//         >
+//           Start Tour
+//         </button>
+//         <button
+//           className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+//           onClick={onSkip}
+//         >
+//           Skip
+//         </button>
+//       </div>
+//     </div>
+//   </div>
+// );
 
 const Render_layout: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [token, setToken] = useState<string | null>(() => {
+  const [token,] = useState<string | null>(() => {
     const storedToken = localStorage.getItem("token");
     return storedToken ? storedToken : null;
   });

@@ -12,7 +12,7 @@ export function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const [token, setToken] = useState(localStorage.getItem("token") || null);
+    const [, setToken] = useState(localStorage.getItem("token") || null);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -24,7 +24,7 @@ const ModuleIntro: React.FC<ModuleIntroProps> = ({ moduleName, moduleId, onProce
         {/* 2. Character Image - Shifted right to overlap the board */}
         <div className="relative z-20 md:-mr-16 animate-bounce-in">
           <img
-            src={maleCaricature}
+            src={caricature}
             alt={`${characterName} caricature`}
             className="w-64 md:w-[480px] h-auto drop-shadow-2xl object-contain"
           />

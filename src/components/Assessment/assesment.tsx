@@ -29,7 +29,7 @@ type QuizPageProps = {
 
 const TIMER_DURATION = 5;
 
-const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
+const Assessment: React.FC<QuizPageProps> = ({ onQuizComplete }) => {
   const { module_id, assessment_id } = useParams<{ module_id: string; assessment_id: string }>();
 
   const isSubmittingRef = useRef(false);
@@ -42,7 +42,7 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
   const [totalXP, setTotalXP] = useState<number>(0);
-  const [error, setError] = useState<string>("");
+  const [, setError] = useState<string>("");
   const [timer, setTimer] = useState<number>(TIMER_DURATION);
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
   const [timerKey, setTimerKey] = useState<number>(0);
@@ -56,7 +56,6 @@ const Assessment: React.FC<QuizPageProps> = ({ onLogout, onQuizComplete }) => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
-  const moduleNumber = parseInt(module_id || "1");
   const currentQuestion = quiz[currentIndex];
   const isMultiChoice = currentQuestion ? Array.isArray(currentQuestion.correct) : false;
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import './App.css'
 import { Toaster } from "react-hot-toast";
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
@@ -25,7 +25,6 @@ function App() {
     const storedToken = localStorage.getItem("token");
     return storedToken || null;
   });
-  const [showWelcome, setShowWelcome] = useState<boolean>(false);
   return (
     <>
     <TourProvider>

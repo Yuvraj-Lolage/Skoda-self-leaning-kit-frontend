@@ -7,7 +7,7 @@ import axiosInstance from "../../../API/axios_instance";
 import { getToken } from "../../../helper/auth_token";
 
 const SubmoduleManager = () => {
-  const [token, setToken] = useState(() => getToken() || "");
+  const [token] = useState(() => getToken() || "");
   const [modules, setModules] = useState<Module[]>([]);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const [submodules, setSubmodules] = useState<Submodule[]>([]);
@@ -30,7 +30,7 @@ const SubmoduleManager = () => {
   };
 
   const fetchSubmodules = async (moduleId: number) => {
-    await axiosInstance.get(`/submodule/by/module/${ selectedModule }`, {
+    await axiosInstance.get(`/submodule/by/module/${moduleId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

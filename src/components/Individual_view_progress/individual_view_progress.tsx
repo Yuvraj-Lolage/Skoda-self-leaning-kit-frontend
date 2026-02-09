@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   Trophy,
   TrendingUp,
   Award,
@@ -16,14 +15,13 @@ import {
 } from "../ui/card/card";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import axiosInstance from "../../API/axios_instance";
 
 interface GradesPageProps {
   onBackClick: () => void;
 }
 
-export default function IndividualViewProgress({ onBackClick }: GradesPageProps) {
+export default function IndividualViewProgress({ }: GradesPageProps) {
   const navigate = useNavigate();
 
   /* ================= STATE ================= */

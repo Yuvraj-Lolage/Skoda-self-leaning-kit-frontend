@@ -1,16 +1,10 @@
 import React, { useEffect } from "react";
 import { LeftPanel } from "./left_side_panel";
-import { StatsCards } from "./stats_cards";
 import { ChartsSection } from "./charts_section";
 import ResumeTrainingCard from "./resume_training_card";
 import { Helmet } from "react-helmet";
 import { getToken } from "../../helper/auth_token";
 import axiosInstance from "../../API/axios_instance";
-
-
-import { usePageTour } from "../../hooks/use_page_tour";
-import { TOUR_KEYS } from "../../constants/tour_keys";
-import { dashboardTourSteps } from "../../tours/dashboard_tour";
 
 export default function Dashboard() {
 
@@ -19,8 +13,7 @@ export default function Dashboard() {
 
     const [userData, setUserData] = React.useState<any>(null);
 
-    const [isLoading, setIsLoading] = React.useState<boolean>(false);
-    const [fetchError, setFetchError] = React.useState<string | null>(null);
+    const [, setFetchError] = React.useState<string | null>(null);
 
     const fetchUserData = async () => {
         if (!token) {
@@ -37,6 +30,8 @@ export default function Dashboard() {
                 setUserData(response.data);
             })
             .catch((error) => {
+                console.log(error);
+                
                 setFetchError("Error fetching user data");
             });
     }

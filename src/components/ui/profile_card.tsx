@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card/card";
 import { Button } from "../ui/button";
-import { MoreVertical, Bell, MessageCircle, Settings, User } from "lucide-react";
+import { MoreVertical, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getTokenData } from "../../helper/auth_token";
 

@@ -3,8 +3,6 @@ import {
   ArrowLeft,
   Search,
   Eye,
-  Crown,
-  Medal,
 } from "lucide-react";
 import { Button } from "../../ui/button";
 import { UserDetailModal } from "./user_details_modal";
@@ -37,7 +35,7 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [users, setUsers] = useState<UserProgress[]>([]);
   const [modules, setModules] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -97,8 +95,6 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
     fetchUsers();
     fetchModules();
   }, []);
-
-  const topUser = users.length > 0 ? users[0] : null;
 
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

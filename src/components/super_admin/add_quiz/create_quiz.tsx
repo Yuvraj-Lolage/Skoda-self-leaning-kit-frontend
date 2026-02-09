@@ -3,7 +3,7 @@ import axiosInstance from "../../../API/axios_instance";
 
 export default function ManageAssessments() {
   const [modules, setModules] = useState<any[]>([]);
-  const [submodules, setSubmodules] = useState<any[]>([]);
+  const [,setSubmodules] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
 
   const [selectedModule, setSelectedModule] = useState<number | null>(null);

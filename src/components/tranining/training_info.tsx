@@ -15,7 +15,7 @@ export default function TrainingModules() {
   usePageTour(TOUR_KEYS.TRAINING, trainingTourSteps);
 
   const navigate = useNavigate();
-  const [token, setToken] = useState(() => {
+  const [token] = useState(() => {
     const storedToken = localStorage.getItem("token");
     return storedToken || null;
   });

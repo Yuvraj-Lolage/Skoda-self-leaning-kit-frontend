@@ -4,13 +4,10 @@ import type { Module } from "../../../types/Module";
 import ModuleList from "./module_list";
 import ModuleForm from "./module_form";
 import axiosInstance from "../../../API/axios_instance";
-import { ToastHelper } from "../../ui/toast_helper/toast";
-import { Toaster } from "react-hot-toast";
 
 
 const ModuleManager = () => {
   const [modules, setModules] = useState<Module[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const fetchModules = async () => {
     axiosInstance.get("/module/all",{
