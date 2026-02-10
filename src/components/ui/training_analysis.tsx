@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 
 interface TrainingAnalysisProps {
   userName: string;
@@ -14,15 +14,22 @@ const TrainingAnalysis: React.FC<TrainingAnalysisProps> = ({
   currentSession,
 }) => {
 
-     const [overallPercentage] = useState(11);
+  /* -------- SAME LOGIC AS YOUR PIE CHART -------- */
+  const overallPercentage = useMemo(() => {
+    if (!totalModules || totalModules === 0) return 0;
+
+    return Math.round(
+      (completedModules / totalModules) * 100
+    );
+  }, [completedModules, totalModules]);
+
   return (
     <div className="p-6 h-auto">
-      {/* Overall Progress Card */}
       <div className="bg-white rounded-xl p-6 shadow-lg" id="training-analysis-card">
         <div className="flex justify-between items-start">
           <div>
             <h2 className="text-2xl font-semibold">
-              {userName.charAt(0).toUpperCase() + userName.slice(1) }’s Progress
+              {userName.charAt(0).toUpperCase() + userName.slice(1)}’s Progress
             </h2>
             <p className="text-sm text-gray-500 mt-1">
               💡 Good start! Keep the focus and pace!

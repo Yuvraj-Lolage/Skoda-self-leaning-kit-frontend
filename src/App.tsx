@@ -27,67 +27,83 @@ function App() {
   });
   return (
     <>
-    <TourProvider>
-      <Helmet>
-        <title>Škoda Auto | SLK</title>
-      </Helmet>
-      <Toaster />
-      <Routes>
-        <Route
-          path="/login"
-          element={token ? <Navigate to="/dashboard" /> : <LoginPage />}
-        />
-        <Route
-          path="/"
-          element={token ? <Navigate to="/dashboard" /> : <LoginPage />}
-        />
-        <Route
-          path="/dashboard"
-          element={token ? <Render_layout /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/training"
-          element={token ? <Training_info /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/add-module"
-          element={token ? <ModuleManager /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/add-submodule"
-          element={token ? <SubmoduleManager /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/add-assessment"
-          element={token ? <ManageAssessments /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/module/:module_id/submodule/:sub_id"
-          element={token ? <Submodule onBackClick={() => { }} /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/module/:module_id/assessment/:assessment_id"
-          element={token ? <Assessment onLogout={() => setToken('null')}/> : <Navigate to="/login" /> }
-        />
+      <TourProvider>
+        <Helmet>
+          <title>Škoda Auto | SLK</title>
+        </Helmet>
+        <Toaster />
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              localStorage.getItem("token")
+                ? <Navigate to="/dashboard" />
+                : <LoginPage />
+            }
+          />
 
-      <Route
-          path="/admin/view-progress"
-          element={token ? <AdminProgressPage onBackClick={ () =>{ navigate("/") } } /> : <Navigate to="/login" /> }
-        />
+          <Route
+            path="/"
+            element={
+              localStorage.getItem("token")
+                ? <Navigate to="/dashboard" />
+                : <LoginPage />
+            }
+          />
 
-      <Route
-          path="/admin/create-quiz"
-          element={token ? <CreateQuiz modules={[]} /> : <Navigate to="/login" /> }
-        />
-      <Route
-          path="/admin/dashboard"
-          element={token ? <AdminDashboard/> : <Navigate to="/login" /> }
-        />
-      <Route
-          path="/user/view-progress"
-          element={token ? <IndividualViewProgress onBackClick={ () =>{ navigate("/") } }/> : <Navigate to="/login" /> }
-        />
-      </Routes>
+          <Route
+            path="/dashboard"
+            element={
+              localStorage.getItem("token")
+                ? <Render_layout />
+                : <Navigate to="/login" />
+            }
+          />
+
+
+          <Route
+            path="/training"
+            element={token ? <Training_info /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/add-module"
+            element={token ? <ModuleManager /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/add-submodule"
+            element={token ? <SubmoduleManager /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/add-assessment"
+            element={token ? <ManageAssessments /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/module/:module_id/submodule/:sub_id"
+            element={token ? <Submodule onBackClick={() => { }} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/module/:module_id/assessment/:assessment_id"
+            element={token ? <Assessment onLogout={() => setToken('null')} /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path="/admin/view-progress"
+            element={token ? <AdminProgressPage onBackClick={() => { navigate("/") }} /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path="/admin/create-quiz"
+            element={token ? <CreateQuiz modules={[]} /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/admin/dashboard"
+            element={token ? <AdminDashboard /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/user/view-progress"
+            element={token ? <IndividualViewProgress onBackClick={() => { navigate("/") }} /> : <Navigate to="/login" />}
+          />
+        </Routes>
       </TourProvider>
     </>
   )

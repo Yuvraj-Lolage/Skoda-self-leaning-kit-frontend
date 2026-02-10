@@ -153,17 +153,17 @@ const Render_layout: React.FC = () => {
 
       case "add-submodule":
         return <SubmoduleManager />;
-      
+
       case "add-quiz":
-        return <ManageAssessments/>;
+        return <ManageAssessments />;
 
 
       case "view-progress":
-         if (!currentUserRole) {
+        if (!currentUserRole) {
           return <CenterLoader />;
         }
         if (currentUserRole === "Admin") {
-          return  <AdminProgressPage
+          return <AdminProgressPage
             onBackClick={() => navigate("/")}
           />
         }
@@ -228,8 +228,9 @@ const Render_layout: React.FC = () => {
     localStorage.removeItem("tokenData");
     setTokenData(null);
     setCurrentUserRole(null);
-    window.location.href = "/login";
+    navigate("/login", { replace: true });
   };
+
 
   return (
     <>

@@ -5,9 +5,11 @@ import { ToastHelper } from "../ui/toast_helper/toast";
 import { Toaster } from "react-hot-toast";
 import { Helmet } from "react-helmet";
 import login_vdo from '../../assets/login_vdo.mp4';
+import { useNavigate } from "react-router-dom";
 
 
 export function LoginPage() {
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -24,9 +26,7 @@ export function LoginPage() {
                 localStorage.setItem("token", response.data);
                 setToken(response.data);
                 ToastHelper.success("User login successfull!");
-                setTimeout(() => {
-                    window.location.href = "/login";
-                }, 2000);
+                navigate("/dashboard", { replace: true });
             } else {
                 ToastHelper.error("Something went wrong, please try again.");
                 console.error("something went wrong");
