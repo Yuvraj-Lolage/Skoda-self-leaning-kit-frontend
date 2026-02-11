@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import axiosInstance from "../../API/axios_instance";
 import { ToastHelper } from "../ui/toast_helper/toast";
-import { Toaster } from "react-hot-toast";
 import { Helmet } from "react-helmet";
 import login_vdo from '../../assets/login_vdo.mp4';
 import { useNavigate } from "react-router-dom";
@@ -43,7 +42,6 @@ export function LoginPage() {
             <Helmet>
                 <title>Škode | SLK - Login</title>
             </Helmet>
-            <Toaster />
             <div className="h-screen flex w-full">
                 {/* Left Side */}
                 <div className="hidden lg:flex h-full w-full text-white items-center justify-center p-12 relative overflow-hidden">

@@ -8,7 +8,7 @@ import { getTokenData } from "../../helper/auth_token";
 import WelcomeScreen from "../ui/welcome_screen/welcome_screen";
 import ModuleManager from "../super_admin/add_module/module_manager";
 import SubmoduleManager from "../super_admin/add_submodule/submodule_manager";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { AdminProgressPage } from "../super_admin/view_progress/admin_progress";
 import AdminDashboard from "../super_admin/admin_dashboard/admin_dashboard";
 import axiosInstance from "../../API/axios_instance";
@@ -126,30 +126,24 @@ const Render_layout: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "dashboard":
 
+      case "dashboard":
         if (!currentUserRole) {
-          return <CenterLoader />; // or loader
+          return <CenterLoader />;
         }
-        if (currentUserRole === "Admin") {
-          return <AdminDashboard />
-        }
-        else {
-          return <Dashboard />;
-        }
+
+        return currentUserRole === "Admin"
+          ? <AdminDashboard />
+          : <Dashboard />;
 
       case "training":
-        // return <Training_info />;
-        navigate("/training");
-        break;
+        return <Navigate to="/training" replace />;
 
       case "settings":
         return <h2 className="text-xl">⚙️ Settings Content</h2>;
 
-
       case "add-module":
         return <ModuleManager />;
-
 
       case "add-submodule":
         return <SubmoduleManager />;
@@ -157,25 +151,26 @@ const Render_layout: React.FC = () => {
       case "add-quiz":
         return <ManageAssessments />;
 
-
       case "view-progress":
         if (!currentUserRole) {
           return <CenterLoader />;
         }
+
         if (currentUserRole === "Admin") {
-          return <AdminProgressPage
-            onBackClick={() => navigate("/")}
-          />
+          return (
+            <AdminProgressPage
+              onBackClick={() => navigate("", { replace: true })}
+            />
+          );
         }
-        else {
-          navigate("/user/view-progress");
-        }
-        break;
+
+        return <Navigate to="/user/view-progress" replace />;
+
       default:
-        return <Dashboard />;
         return <Dashboard />;
     }
   };
+
 
   const updateWelcomeVisited = async () => {
     try {
@@ -206,10 +201,16 @@ const Render_layout: React.FC = () => {
         return updated;
       });
 
+      // ✅ Reload ONCE after a small delay so toast is visible
+      setTimeout(() => {
+        window.location.reload();
+      }, 1200);
+
     } catch (err) {
       console.error("Error updating welcome flag:", err);
     }
   };
+
 
 
   useEffect(() => {

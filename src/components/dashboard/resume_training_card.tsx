@@ -55,7 +55,7 @@ export default function ResumeTrainingCard() {
       : 0;
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-2xl text-white shadow-lg">
+    <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-2xl text-white shadow-lg" id="resume-training">
       <div className="flex justify-between items-start">
         <div>
           <h3 className="text-lg font-semibold">

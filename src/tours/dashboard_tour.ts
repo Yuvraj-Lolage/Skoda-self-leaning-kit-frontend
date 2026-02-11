@@ -42,7 +42,7 @@ export const dashboardTourSteps = [
     }
   },
   {
-    element: "#resume-training-section",
+    element: "#resume-training",
     popover: {
       title: "Resume Training",
       description: "Continue your learning from where you left off.",
