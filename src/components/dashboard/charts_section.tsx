@@ -1,67 +1,107 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card/card";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-
-const weeklyData = [
-  { name: "Mon", value: 20 },
-  { name: "Tue", value: 35 },
-  { name: "Wed", value: 30 },
-  { name: "Thu", value: 45 },
-  { name: "Fri", value: 25 },
-  { name: "Sat", value: 15 },
-  { name: "Sun", value: 10 },
-];
-
-const activitiesData = [
-  { name: "Study", value: 57, color: "#ec4899" },
-  { name: "Exams", value: 19, color: "#f97316" },
-  { name: "Other", value: 24, color: "#e2e8f0" },
-];
+import { useEffect, useMemo, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../ui/card/card";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+} from "recharts";
+import axiosInstance from "../../API/axios_instance";
 
 export function ChartsSection() {
+  const [totalCompletedModules, setTotalCompletedModules] =
+    useState<number>(0);
+  const [allModules, setAllModules] = useState<number>(0);
+
+  /* ================= API CALLS ================= */
+
+  const fetchCompletedModules = async () => {
+    try {
+      const res = await axiosInstance.get(
+        "/module/with-submodules/with-status/all",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setTotalCompletedModules(
+        res.data?.modules?.total_completed_modules ?? 0
+      );
+    } catch (err) {
+      console.error("Failed to load module progress", err);
+    }
+  };
+
+  const fetchAllModules = async () => {
+    try {
+      const res = await axiosInstance.get("/module/all", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      setAllModules(res.data?.length ?? 0);
+    } catch (err) {
+      console.error("Error fetching all modules", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompletedModules();
+    fetchAllModules();
+  }, []);
+
+  /* ================= DERIVED DATA ================= */
+
+  const completionPercentage = useMemo(() => {
+    if (allModules === 0) return 0;
+    return Math.round(
+      (totalCompletedModules / allModules) * 100
+    );
+  }, [totalCompletedModules, allModules]);
+
+  const activitiesData = useMemo(
+    () => [
+      {
+        name: "Completed",
+        value: totalCompletedModules,
+        color: "#ec4899",
+      },
+      {
+        name: "Remaining",
+        value: Math.max(
+          allModules - totalCompletedModules,
+          0
+        ),
+        color: "#e2e8f0",
+      },
+    ],
+    [totalCompletedModules, allModules]
+  );
+
+  /* ================= RENDER ================= */
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Weekly Chart */}
-      <Card className="bg-white shadow-lg rounded-xl border-0">
+      <Card
+        className="bg-white shadow-lg rounded-xl border-0"
+        id="progress-chart"
+      >
         <CardHeader>
-          <CardTitle>This Week</CardTitle>
+          <CardTitle>Training Progress</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyData}>
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#64748b' }}
-                />
-                <YAxis hide />
-                <Bar 
-                  dataKey="value" 
-                  radius={[8, 8, 0, 0]}
-                  fill="url(#pinkGradient)"
-                />
-                <defs>
-                  <linearGradient id="pinkGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#ec4899" />
-                    <stop offset="100%" stopColor="#f97316" />
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Activities Chart */}
-      <Card className="bg-white shadow-lg rounded-xl border-0">
-        <CardHeader>
-          <CardTitle>Activities</CardTitle>
-        </CardHeader>
         <CardContent>
           <div className="h-64 flex items-center justify-center">
             <div className="relative">
-              <ResponsiveContainer width={200} height={200}>
+              <ResponsiveContainer width={300} height={300}>
                 <PieChart>
                   <Pie
                     data={activitiesData}
@@ -69,28 +109,29 @@ export function ChartsSection() {
                     cy="50%"
                     innerRadius={60}
                     outerRadius={80}
-                    paddingAngle={2}
+                    paddingAngle={1}
                     dataKey="value"
                   >
                     {activitiesData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.color}
+                      />
                     ))}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
+
               <div className="absolute inset-0 flex items-center justify-center flex-col">
-                <span className="text-2xl">76%</span>
-                <span className="text-sm text-gray-500">Complete</span>
-              </div>
-            </div>
-            <div className="ml-8 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-pink-500"></div>
-                <span className="text-sm">Study (57%)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                <span className="text-sm">Exams (19%)</span>
+                <span className="text-2xl font-bold">
+                  {completionPercentage}%
+                </span>
+                <span className="text-sm text-gray-500">
+                  Complete
+                </span>
+                <span className="text-xs text-gray-400 mt-1">
+                  {totalCompletedModules} of {allModules} modules
+                </span>
               </div>
             </div>
           </div>

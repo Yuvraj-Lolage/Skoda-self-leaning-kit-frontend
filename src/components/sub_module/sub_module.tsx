@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Share2, Play, Pause, Volume2, Settings, Maximize, ChevronDown, ChevronRight, Check, Circle } from "lucide-react";
+import { ArrowLeft, Check, Circle } from "lucide-react";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../API/axios_instance";
-import TrainingVideo from "../ui/training_video/training_video";
+import { Tabs, TabsContent, TabsTrigger, TabsList } from "../ui/tabs";
+import ContentRenderer from "../ui/container_renderer/container_renderer";
 
 interface CoursePlayerPageProps {
     onBackClick: () => void;
@@ -16,12 +16,6 @@ interface Lesson {
     title: string;
     duration: string;
     status: "completed" | "current" | "in_progress" | "locked";
-}
-
-interface CourseSection {
-    id: string;
-    title: string;
-    lessons: Lesson[];
 }
 
 interface ModuleData {
@@ -37,18 +31,15 @@ interface SubmoduleData {
     module_id: string;
     name: string;
     description: string;
+    content_type: string;
     content_url: string;
     order_index: string;
     duration: string;
     created_at: string;
 }
 
-interface Assessment {
-    
-}
-
 interface AssessmentData {
-   assessment_id: string;
+    assessment_id: string;
     module_id: string;
     submodule_id: string;
     title: string;
@@ -57,12 +48,13 @@ interface AssessmentData {
 }
 
 
-export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
+export function Submodule({ }: CoursePlayerPageProps) {
     // const { module_id, sub_id } = useParams();
     const param = useParams();
-    const [isPlaying, setIsPlaying] = useState(false);
+    const navigate = useNavigate();
+
     const [activeTab, setActiveTab] = useState("overview");
-    const [currentLesson, setCurrentLesson] = useState("lesson-1-1");
+    const [, setCurrentLesson] = useState("lesson-1-1");
 
     const [moduleData, setModuleData] = useState<ModuleData | null>(null);
     const [submoduleData, setSubModuleData] = useState<SubmoduleData | null>(null);
@@ -123,16 +115,6 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
         fetchAssessmentData();
     }, [])
 
-    const [openSections, setOpenSections] = useState<string[]>(["section-1", "section-2"]);
-
-    const toggleSection = (sectionId: string) => {
-        setOpenSections(prev =>
-            prev.includes(sectionId)
-                ? prev.filter(id => id !== sectionId)
-                : [...prev, sectionId]
-        );
-    };
-
     const handleLessonClick = (lessonId: string) => {
         setCurrentLesson(lessonId);
     };
@@ -155,18 +137,15 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
                 <div className="flex items-center justify-between">
                     {/* Left: Logo */}
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost" size="sm" onClick={onBackClick}>
+                        <Button variant="ghost" size="sm" onClick={() => { navigate('/') }}>
                             <ArrowLeft className="w-4 h-4" />
                         </Button>
-                        <div className="text-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                            Academyis
-                        </div>
                     </div>
 
                     {/* Center: Course Title */}
                     <div className="flex-1 text-center mx-8">
                         <h2 className="text-lg font-semibold text-gray-900 truncate">
-                            {moduleData?.module_name}
+                            {submoduleData?.name}
                         </h2>
                     </div>
 
@@ -176,13 +155,6 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
                             <Progress value={courseProgress} className="w-24 h-2" />
                             <span className="text-sm text-gray-600">{courseProgress}%</span>
                         </div>
-                        <Button variant="ghost" size="sm">
-                            <Share2 className="w-4 h-4" />
-                        </Button>
-                        {/* <Avatar className="w-8 h-8">
-                            <AvatarImage src="/api/placeholder/32/32" />
-                            <AvatarFallback>JD</AvatarFallback>
-                        </Avatar> */}
                     </div>
                 </div>
             </div>
@@ -191,19 +163,102 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
             <div className="flex-1 flex">
                 {/* Left Side - Player Area */}
                 <div className="flex-1 flex flex-col">
-                    {submoduleData?.content_url ? (
-                        <><TrainingVideo video_url={submoduleData.content_url} />
-                            <h1>{submoduleData.name}</h1>
-                            <p>{submoduleData.description}</p>
-                        </>
-                    ) : (
-                        <div className="flex-1 flex items-center justify-center">
-                            <div className="text-center">
-                                <p className="text-lg font-medium text-gray-700">No video for this module</p>
-                                <p className="text-sm text-gray-500 mt-1">This submodule does not contain a video.</p>
+                        {/* <TrainingVideo video_url={submoduleData?.content_url ?? ""} /> */}
+                        {submoduleData ? (
+                            <ContentRenderer submoduleData={submoduleData} />
+                        ) : null}
+                            {/* <h1>{submoduleData.name}</h1>
+                            <p>{submoduleData.description}</p> */}
+                            <div className="flex-1 flex flex-col">
+                                {/* Navigation Tabs */}
+                                <div className="bg-white border-b border-gray-200 p-6">
+                                    <Tabs value={activeTab} onValueChange={setActiveTab}>
+                                        <TabsList className="grid w-full grid-cols-6 lg:w-fit">
+                                            <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                                                Overview
+                                            </TabsTrigger>
+                                            <TabsTrigger value="qa" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                                                Q&A
+                                            </TabsTrigger>
+                                            <TabsTrigger value="notes" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                                                Notes
+                                            </TabsTrigger>
+                                            <TabsTrigger value="announcements" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                                                Announcements
+                                            </TabsTrigger>
+                                            <TabsTrigger value="reviews" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                                                Reviews
+                                            </TabsTrigger>
+                                            <TabsTrigger value="tools" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                                                Learning Tools
+                                            </TabsTrigger>
+                                        </TabsList>
+
+                                        <div className="mt-6">
+                                            <TabsContent value="overview" className="space-y-4">
+                                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">About This Lesson</h3>
+                                                    <p className="text-gray-600">
+                                                        { submoduleData?.description }
+                                                    </p> 
+                                                </div>
+                                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Learning Objectives</h3>
+                                                    <ul className="space-y-2 text-gray-600">
+                                                        <li className="flex items-start space-x-2">
+                                                            <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                                            <span>Understand the definition and scope of data science</span>
+                                                        </li>
+                                                        <li className="flex items-start space-x-2">
+                                                            <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                                            <span>Identify key skills and tools used by data scientists</span>
+                                                        </li>
+                                                        <li className="flex items-start space-x-2">
+                                                            <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                                            <span>Explore real-world applications and career opportunities</span>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </TabsContent>
+
+                                            <TabsContent value="qa" className="space-y-4">
+                                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Questions & Answers</h3>
+                                                    <p className="text-gray-600">No questions yet. Be the first to ask!</p>
+                                                </div>
+                                            </TabsContent>
+
+                                            <TabsContent value="notes" className="space-y-4">
+                                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Notes</h3>
+                                                    <p className="text-gray-600">Take notes while watching to help remember key concepts.</p>
+                                                </div>
+                                            </TabsContent>
+
+                                            <TabsContent value="announcements" className="space-y-4">
+                                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Announcements</h3>
+                                                    <p className="text-gray-600">No announcements at this time.</p>
+                                                </div>
+                                            </TabsContent>
+
+                                            <TabsContent value="reviews" className="space-y-4">
+                                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Course Reviews</h3>
+                                                    <p className="text-gray-600">See what other students are saying about this course.</p>
+                                                </div>
+                                            </TabsContent>
+
+                                            <TabsContent value="tools" className="space-y-4">
+                                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Learning Tools</h3>
+                                                    <p className="text-gray-600">Additional resources and tools to enhance your learning experience.</p>
+                                                </div>
+                                            </TabsContent>
+                                        </div>
+                                    </Tabs>
+                                </div>
                             </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Right Sidebar - Course Outline */}
@@ -272,8 +327,8 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
                                 </div>
 
                                 {/* Content always visible */}
+                                {/* Content always visible */}
                                 <div className="ml-2 mt-2 space-y-1">
-
                                     {/* { JSON.stringify(typeof assessmentData) } */}
                                     {assessmentData?.map((assessment) => (
                                         <div
@@ -281,7 +336,7 @@ export function Submodule({ onBackClick, }: CoursePlayerPageProps) {
                                             className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-50`}
                                             onClick={() => handleLessonClick(assessment.assessment_id)}
                                         >
-                                            <div className="flex-1 min-w-0">
+                                            <div className="flex-1 min-w-0" onClick={() => navigate(`/module/${assessment.module_id}/assessment/${assessment.assessment_id}`)}>
                                                 <p className="text-sm truncate font-medium text-gray-900">
                                                     {assessment.title}
                                                 </p>

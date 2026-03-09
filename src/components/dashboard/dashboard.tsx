@@ -1,35 +1,66 @@
-import React from "react";
-import { RightPanel } from "./right_side_panel";
-import { StatsCards } from "./stats_cards";
+import React, { useEffect } from "react";
+import { LeftPanel } from "./left_side_panel";
 import { ChartsSection } from "./charts_section";
 import ResumeTrainingCard from "./resume_training_card";
+import { Helmet } from "react-helmet";
+import { getToken } from "../../helper/auth_token";
+import axiosInstance from "../../API/axios_instance";
 
 export default function Dashboard() {
+
+    // usePageTour(TOUR_KEYS.DASHBOARD, dashboardTourSteps);
+    const [token] = React.useState<string | null>(getToken());
+
+    const [userData, setUserData] = React.useState<any>(null);
+
+    const [, setFetchError] = React.useState<string | null>(null);
+
+    const fetchUserData = async () => {
+        if (!token) {
+            setFetchError("No token found");
+            return;
+        }
+
+        await axiosInstance.get('/user/me', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then((response) => {
+                setUserData(response.data);
+            })
+            .catch((error) => {
+                console.log(error);
+                
+                setFetchError("Error fetching user data");
+            });
+    }
+
+    useEffect(() => {
+        fetchUserData();
+    }, [token])
     return (
-        <div>
-            {/* <h1 className='text-black text-center'>
-                Vide from shared folder
-            </h1>
-            <video
-                src="http://localhost:5000/videos/module_1.mp4"
-                controls
-                width="600"
-            />
-            <TrainingVideo video_url={"http://localhost:5000/videos/module_1.mp4"}/>
-             */}
-            <div className="flex-1 p-6 flex gap-6">
-                {/* Left Content Area */}
-                <div className="flex-1 space-y-6">
-                    <StatsCards />
-                    <ResumeTrainingCard/>
-                    <ChartsSection />
+        <>
+            <Helmet>
+                <title>Škode | SLK - Dashboard</title>
+            </Helmet>
+            <div>
+                <div className="flex-1 p-6 flex gap-6">
+                    {/* Left Content Area */}
+                        <LeftPanel xp_points={userData ? userData.xp : 0} />
+                    {/* Right Panel */}
+                    <div className="flex-1 space-y-6">
+                        <ResumeTrainingCard />
+                        <ChartsSection />
+                    </div>
+
+
+
                 </div>
 
-                {/* Right Panel */}
-                <RightPanel />
+
             </div>
-
-
-        </div>
+        </>
     )
 }
+

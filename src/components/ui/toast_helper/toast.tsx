@@ -1,6 +1,5 @@
 import toast from "react-hot-toast";
 import type { ToastOptions } from "react-hot-toast";
-import { CheckCircle } from "lucide-react"; // or any icon you prefer
 
 const defaultOptions: ToastOptions = {
   duration: 3000,

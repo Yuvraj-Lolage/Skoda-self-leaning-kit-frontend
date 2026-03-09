@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { Module } from "../../../types/Module";
 import axiosInstance from "../../../API/axios_instance";
+import { ToastHelper } from "../../ui/toast_helper/toast";
+import { Toaster } from "react-hot-toast";
 
 interface Props {
     modules: Module[];
@@ -12,37 +14,62 @@ const ModuleForm = ({ modules, refresh }: Props) => {
     const [module_description, setDescription] = useState("");
     const [duration, setDuration] = useState<number>(0);
     const [order_index, setPosition] = useState(modules.length + 1);
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async () => {
-
-        const newModule = {
-            module_name,
-            module_description,
-            duration,
-            order_index,
-        };
-
-        console.log(JSON.stringify(newModule));
         try {
-            axiosInstance.post("/module/create", newModule, {
+            setLoading(true);
+
+            const newModule = {
+                module_name,
+                module_description,
+                duration,
+                order_index,
+            };
+
+            if (!newModule.module_name || newModule.module_name.trim() === "") {
+                ToastHelper.error("Module name cannot be empty.");
+                throw new Error("ValidationError: module_name is required");
+            }
+            if (!newModule.module_description || newModule.module_description.trim() === "") {
+                ToastHelper.error("Module description cannot be empty.");
+                throw new Error("ValidationError: module_description is required");
+            }
+            if (newModule.duration == null || Number.isNaN(Number(newModule.duration)) || Number(newModule.duration) <= 0) {
+                ToastHelper.error("Duration must be a positive number.");
+                throw new Error("ValidationError: duration must be a positive number");
+            }
+            if (newModule.order_index == null || Number.isNaN(Number(newModule.order_index)) || Number(newModule.order_index) <= 0) {
+                ToastHelper.error("Insert position must be a positive number.");
+                throw new Error("ValidationError: order_index must be a positive number");
+            }
+
+            await axiosInstance.post("/module/create", newModule, {
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
             });
-        } catch (error) {
-            console.error("Error adding module:", error);    
-        }
-        setName("");
-        setDescription("");
-        setDuration(0);
-        setPosition(modules.length + 1);
+            
+            setName("");
+            setDescription("");
+            setDuration(0);
+            setPosition(modules.length + 1);
+            ToastHelper.success("Module added successfully!");
+            refresh();
 
-        refresh();
+        } catch (error) {
+            console.error("Error adding module:", error);
+            ToastHelper.error("Failed to add module. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
+
 
     return (
         <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100">
+             <Toaster />
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Add New Module</h2>
 
             <div className="space-y-4">
@@ -89,8 +116,32 @@ const ModuleForm = ({ modules, refresh }: Props) => {
                     className="w-full py-3 text-white rounded-xl 
           bg-gradient-to-r from-purple-600 to-blue-600 
           shadow-lg hover:opacity-90 transition"
+                    disabled={loading}
                 >
-                    Add Module
+                    {loading ? (
+                        <svg
+                            className="animate-spin h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                            ></circle>
+                            <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4l-3 3 3 3h-4z"
+                            ></path>
+                        </svg>
+                    ) : (
+                        "Add Module"
+                    )}
                 </button>
             </div>
         </div>
