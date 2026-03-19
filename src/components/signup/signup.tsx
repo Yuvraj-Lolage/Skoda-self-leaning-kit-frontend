@@ -4,7 +4,7 @@ import axiosInstance from "../../API/axios_instance";
 import { ToastHelper } from "../ui/toast_helper/toast";
 import { Helmet } from "react-helmet";
 import signup_vdo from '../../assets/login_vdo.mp4';
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export function SignupPage() {
     const navigate = useNavigate();
@@ -233,6 +233,17 @@ export function SignupPage() {
                                 )}
                             </button>
                         </form>
+                        {/* Footer */}
+                        <div className="mt-6 text-center">
+                            <p className="text-base ">
+                                Already have an account?{" "}
+                                <Link to="/login">
+                                    <span className="text-blue-600 hover:text-blue-500 font-semibold">
+                                        Log in here
+                                    </span>
+                                </Link>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
