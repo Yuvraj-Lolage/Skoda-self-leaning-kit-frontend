@@ -58,6 +58,7 @@ const Render_layout: React.FC = () => {
   const [tokenData, setTokenData] = useState<any | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [startTour, setStartTour] = useState(false);
 
 
   useEffect(() => {
@@ -201,10 +202,10 @@ const Render_layout: React.FC = () => {
         return updated;
       });
 
-      // ✅ Reload ONCE after a small delay so toast is visible
-      setTimeout(() => {
-        window.location.reload();
-      }, 1200);
+      // // ✅ Reload ONCE after a small delay so toast is visible
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 1200);
 
     } catch (err) {
       console.error("Error updating welcome flag:", err);
@@ -240,16 +241,41 @@ const Render_layout: React.FC = () => {
       </Helmet>
       {showWelcomeModal &&
 
+        // <WelcomeScreen
+        //   onClose={handleCloseWelcome}
+        //   styleType="white"   // "white" | "glass" | "gradient"
+        // />
         <WelcomeScreen
           onClose={handleCloseWelcome}
-          styleType="white"   // "white" | "glass" | "gradient"
+          onStartTour={async () => {
+            setShowWelcomeModal(false);
+            await updateWelcomeVisited();
+            ToastHelper.success("Welcome tour completed!");
+
+            setTokenData((prevData: any) => {
+              const updated = {
+                ...prevData,
+                first_visit_welcome: 1
+              };
+
+              localStorage.setItem("tokenData", JSON.stringify(updated));
+              return updated;
+            });
+            setStartTour(true);
+          }}
+          styleType="white"
         />
       }
       <div className="min-h-screen bg-gray-50 flex">
         {/* Sidebar - Hidden during admin progress view */}
         {activeTab !== "view-progress" && (
           <div className="fixed inset-y-0 left-0 w-64">
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+            {/* <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} /> */}
+            <Sidebar
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              startTour={startTour}
+            />
           </div>
         )}
 

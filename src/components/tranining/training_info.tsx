@@ -12,7 +12,7 @@ import { TOUR_KEYS } from "../../constants/tour_keys";
 import { trainingTourSteps } from "../../tours/training_tour";
 
 export default function TrainingModules() {
-  usePageTour(TOUR_KEYS.TRAINING, trainingTourSteps);
+  usePageTour(TOUR_KEYS.TRAINING, trainingTourSteps, true);
 
   const navigate = useNavigate();
   const [token] = useState(() => {
