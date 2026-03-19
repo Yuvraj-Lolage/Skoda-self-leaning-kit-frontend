@@ -21,7 +21,16 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
-  usePageTour(TOUR_KEYS.DASHBOARD, dashboardTourSteps);
+  // usePageTour(TOUR_KEYS.DASHBOARD, dashboardTourSteps);
+
+  const userData = getTokenData();
+
+  const isAdmin = userData?.role === "Admin";
+
+  usePageTour(
+    isAdmin ? TOUR_KEYS.ADMIN_DASHBOARD : TOUR_KEYS.DASHBOARD,
+    isAdmin ? dashboardTourSteps : dashboardTourSteps
+  );
   const [navigationItems, setNavigationItems] = useState<any[]>([]);
 
   const userItems = [

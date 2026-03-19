@@ -18,6 +18,7 @@ import AdminDashboard from './components/super_admin/admin_dashboard/admin_dashb
 import { TourProvider } from "./context/tour_context";
 import IndividualViewProgress from './components/Individual_view_progress/individual_view_progress';
 import ManageAssessments from './components/super_admin/add_quiz/create_quiz';
+import { SignupPage } from './components/signup/signup';
 
 function App() {
   const navigate = useNavigate();
@@ -39,6 +40,14 @@ function App() {
               localStorage.getItem("token")
                 ? <Navigate to="/dashboard" />
                 : <LoginPage />
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              localStorage.getItem("token")
+                ? <Navigate to="/dashboard" />
+                : <SignupPage />
             }
           />
 
