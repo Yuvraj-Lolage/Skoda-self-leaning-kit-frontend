@@ -5,37 +5,38 @@ import female_caricature from "../../../assets/female_caricature.png";
 
 interface WelcomeScreenProps {
     onClose: () => void;
+    onStartTour: () => void;
     styleType?: "white" | "glass" | "gradient";
 }
 
-const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onClose, styleType = "white" }) => {
-    const [loading, setLoading] = useState(false);
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({onStartTour,styleType = "white" }) => {
+    const [loading] = useState(false);
 
-    const handleStart = async () => {
-        if (loading) return;
-        setLoading(true);
-        try {
-            const resp = await fetch("/api/track-welcome-click", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    event: "welcome_started",
-                    timestamp: new Date().toISOString(),
-                }),
-            });
-            if (!resp.ok) {
-                // handle non-2xx response if needed
-                console.error("API error", resp.status);
-            } else {
-                // optional: const data = await resp.json();
-            }
-        } catch (err) {
-            console.error("Network/API error", err);
-        } finally {
-            setLoading(false);
-            onClose(); // close after API attempt (successful or not)
-        }
-    };
+    // const handleStart = async () => {
+    //     if (loading) return;
+    //     setLoading(true);
+    //     try {
+    //         const resp = await fetch("/api/track-welcome-click", {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify({
+    //                 event: "welcome_started",
+    //                 timestamp: new Date().toISOString(),
+    //             }),
+    //         });
+    //         if (!resp.ok) {
+    //             // handle non-2xx response if needed
+    //             console.error("API error", resp.status);
+    //         } else {
+    //             // optional: const data = await resp.json();
+    //         }
+    //     } catch (err) {
+    //         console.error("Network/API error", err);
+    //     } finally {
+    //         setLoading(false);
+    //         onClose(); // close after API attempt (successful or not)
+    //     }
+    // };
 
     return (
         <div className="welcome-overlay">
@@ -51,7 +52,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onClose, styleType = "whi
                         Discover modules, track your progress, and unlock new skills at your own pace.
                         Let’s make your learning experience engaging, smooth, and inspiring!
                     </p>
-                    <button className="start-btn" onClick={handleStart} disabled={loading}>
+                    <button className="start-btn" onClick={onStartTour} disabled={loading}>
                         {loading ? "Starting..." : "Start Tour"}
                     </button>
                 </div>

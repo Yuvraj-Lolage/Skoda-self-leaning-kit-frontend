@@ -18,9 +18,10 @@ import { dashboardTourSteps } from "../../../tours/dashboard_tour";
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  startTour: boolean;
 }
 
-export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, startTour }: SidebarProps) {
   // usePageTour(TOUR_KEYS.DASHBOARD, dashboardTourSteps);
 
   const userData = getTokenData();
@@ -29,7 +30,8 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
 
   usePageTour(
     isAdmin ? TOUR_KEYS.ADMIN_DASHBOARD : TOUR_KEYS.DASHBOARD,
-    isAdmin ? dashboardTourSteps : dashboardTourSteps
+    isAdmin ? dashboardTourSteps : dashboardTourSteps,
+    startTour
   );
   const [navigationItems, setNavigationItems] = useState<any[]>([]);
 
