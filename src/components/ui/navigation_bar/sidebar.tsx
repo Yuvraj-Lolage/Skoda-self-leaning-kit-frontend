@@ -6,7 +6,8 @@ import {
   FolderPlus,
   FilePlus,
   ClipboardList,
-  BarChart3
+  BarChart3,
+  UserPlus
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getTokenData } from "../../../helper/auth_token";
@@ -47,6 +48,7 @@ export default function Sidebar({ activeTab, setActiveTab, startTour }: SidebarP
     { icon: FolderPlus, label: "Add Module", key: "add-module", id: "add-module" },
     { icon: FilePlus, label: "Add SubModule", key: "add-submodule", id: "add-submodule" },
     { icon: ClipboardList, label: "Add Quiz", key: "add-quiz", id: "add-quiz" },
+    { icon: UserPlus, label: "Add User", key: "Add User", id: "add-user" },
     { icon: BarChart3, label: "View Progress", key: "view-progress", id: "view-progress" },
   ];
 

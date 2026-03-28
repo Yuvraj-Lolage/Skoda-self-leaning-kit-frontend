@@ -15,6 +15,7 @@ import axiosInstance from "../../API/axios_instance";
 import { ToastHelper } from "../ui/toast_helper/toast";
 import ManageAssessments from "../super_admin/add_quiz/create_quiz";
 import Help from "../Help/help";
+import AddUser from "../super_admin/add_user/add_user";
 
 
 const Render_layout: React.FC = () => {
@@ -135,6 +136,8 @@ const Render_layout: React.FC = () => {
 
         return <Navigate to="/user/view-progress" replace />;
 
+      case "Add User":
+        return <AddUser/> ;
       case "help":
         return <Help />;
 

@@ -11,6 +11,67 @@ import { usePageTour } from "../../hooks/use_page_tour";
 import { TOUR_KEYS } from "../../constants/tour_keys";
 import { trainingTourSteps } from "../../tours/training_tour";
 
+type ProgressStatus = "completed" | "in_progress" | "locked";
+
+function sortedSubmodules(module: any) {
+  return [...(module.submodules ?? [])].sort(
+    (a, b) =>
+      (a.submodule_order_index ?? a.order_index ?? 0) -
+      (b.submodule_order_index ?? b.order_index ?? 0)
+  );
+}
+
+/** All assessments in submodule order, then assessment order within each submodule. */
+function flatAssessmentsInModuleOrder(module: any) {
+  const out: any[] = [];
+  for (const sub of sortedSubmodules(module)) {
+    const as = [...(sub.assessments ?? [])].sort(
+      (a, b) =>
+        (a.order_index ?? a.assessment_id ?? 0) -
+        (b.order_index ?? b.assessment_id ?? 0)
+    );
+    out.push(...as);
+  }
+  return out;
+}
+
+/** Module is complete only when every submodule and every assessment under the module is completed. */
+function deriveModuleDisplayStatus(module: any): ProgressStatus {
+  const subs = module.submodules ?? [];
+  const assessments = subs.flatMap((s: any) => s.assessments ?? []);
+
+  const allSubDone =
+    subs.length === 0 ||
+    subs.every((s: any) => s.status === "completed");
+  const allAssessDone =
+    assessments.length === 0 ||
+    assessments.every((a: any) => a.status === "completed");
+
+  if (allSubDone && allAssessDone) {
+    if (subs.length === 0 && assessments.length === 0) {
+      if (module.status === "completed" || module.status === "in_progress") {
+        return module.status;
+      }
+      return "locked";
+    }
+    return "completed";
+  }
+
+  const anyStarted =
+    module.status === "in_progress" ||
+    subs.some(
+      (s: any) =>
+        s.status === "in_progress" || s.status === "completed"
+    ) ||
+    assessments.some(
+      (a: any) =>
+        a.status === "in_progress" || a.status === "completed"
+    );
+
+  if (anyStarted) return "in_progress";
+  return "locked";
+}
+
 export default function TrainingModules() {
   usePageTour(TOUR_KEYS.TRAINING, trainingTourSteps, true);
 
@@ -111,9 +172,9 @@ export default function TrainingModules() {
 
       setModules(normalizedModules);
       setCompletedModulesCount(
-        typeof response.data.total_completed_modules === "number"
-          ? response.data.total_completed_modules
-          : normalizedModules.filter((m) => m.status === "completed").length
+        normalizedModules.filter(
+          (m) => deriveModuleDisplayStatus(m) === "completed"
+        ).length
       );
     } catch (error) {
       console.error("Error loading modules:", error);
@@ -253,8 +314,10 @@ export default function TrainingModules() {
           <h4 className="text-base font-medium text-gray-800">Training Modules</h4>
           <div className="grid grid-cols-1 gap-3">
             {modules.map((module, index) => {
-              const isCompleted = module.status === "completed";
-              const isCurrent = module.status === "in_progress";
+              const displayStatus = deriveModuleDisplayStatus(module);
+              const isCompleted = displayStatus === "completed";
+              const isCurrent = displayStatus === "in_progress";
+              const moduleAssessmentsFlat = flatAssessmentsInModuleOrder(module);
 
               return (
                 <div key={module.module_id} className="border rounded-xl border-top-0 border-gray-200">
@@ -280,7 +343,7 @@ export default function TrainingModules() {
                         <h5 className={`font-medium ${isCompleted ? "text-green-800" : isCurrent ? "text-pink-800" : "text-gray-700"}`}>
                           {module.module_name}
                         </h5>
-                        <p className="text-sm text-gray-500 mt-1">{renderStatus(module.status)}</p>
+                        <p className="text-sm text-gray-500 mt-1">{renderStatus(displayStatus)}</p>
                       </div>
                     </div>
 
@@ -305,23 +368,26 @@ export default function TrainingModules() {
                       {/* Vertical timeline */}
                       <div className="absolute left-12 top-0 bottom-0 w-px bg-gray-300"></div>
 
-                      {module.submodules.map((sub: any) => (
-                        <div key={sub.submodule_id} className="space-y-3 mb-5">
-                          <div className="relative flex items-start" id="submodules-card">
-                            <div className="absolute left-2 top-6 flex items-center">
-                              <div className="w-6 h-px bg-gray-300"></div>
-                              <div className="w-2.5 h-2.5 rounded-full bg-gray-400"></div>
-                            </div>
+                      {sortedSubmodules(module).map((sub: any, subIdx: number) => (
+                        <div
+                          key={sub.submodule_id}
+                          className="relative flex items-start mb-5"
+                          id={subIdx === 0 ? "submodules-card" : undefined}
+                        >
+                          <div className="absolute left-2 top-6 flex items-center">
+                            <div className="w-6 h-px bg-gray-300"></div>
+                            <div className="w-2.5 h-2.5 rounded-full bg-gray-400"></div>
+                          </div>
 
-                            <div
-                              onClick={() =>
-                                sub.status !== "locked" &&
-                                openSubmodule(
-                                  String(module.module_id),
-                                  String(sub.submodule_id)
-                                )
-                              }
-                              className={`
+                          <div
+                            onClick={() =>
+                              sub.status !== "locked" &&
+                              openSubmodule(
+                                String(module.module_id),
+                                String(sub.submodule_id)
+                              )
+                            }
+                            className={`
           ml-10 w-full rounded-lg
           px-5 py-3
           flex justify-between items-center
@@ -330,35 +396,41 @@ export default function TrainingModules() {
           ${sub.status === "locked" ? "cursor-not-allowed opacity-70" : "cursor-pointer"}
           ${renderStyles(sub.status)}
         `}
-                            >
-                              <div className="space-y-0.5">
-                                <h6 className="font-semibold text-gray-800 text-sm">
-                                  {sub.submodule_name}
-                                </h6>
-                                <p className="text-xs text-gray-500 max-w-xl leading-snug">
-                                  {sub.submodule_description}
-                                </p>
-                              </div>
+                          >
+                            <div className="space-y-0.5">
+                              <h6 className="font-semibold text-gray-800 text-sm">
+                                {sub.submodule_name}
+                              </h6>
+                              <p className="text-xs text-gray-500 max-w-xl leading-snug">
+                                {sub.submodule_description}
+                              </p>
+                            </div>
 
-                              <div className="flex flex-col items-end gap-1.5">
-                                <span
-                                  className={`
+                            <div className="flex flex-col items-end gap-1.5">
+                              <span
+                                className={`
               px-2.5 py-0.5 rounded-full text-[11px] font-medium
               ${sub.status === "completed" && "bg-green-100 text-green-700"}
               ${sub.status === "in_progress" && "bg-pink-100 text-pink-700"}
               ${sub.status === "locked" && "bg-gray-200 text-gray-500"}
             `}
-                                >
-                                  {renderStatus(sub.status)}
-                                </span>
-                                <div className="text-[11px] text-gray-500 flex items-center gap-1">
-                                  ⏱ {sub.duration} mins
-                                </div>
+                              >
+                                {renderStatus(sub.status)}
+                              </span>
+                              <div className="text-[11px] text-gray-500 flex items-center gap-1">
+                                ⏱ {sub.duration} mins
                               </div>
                             </div>
                           </div>
+                        </div>
+                      ))}
 
-                          {(sub.assessments ?? []).map((a: any) => (
+                      {moduleAssessmentsFlat.length > 0 && (
+                        <div className="space-y-3 mb-2">
+                          <p className="ml-10 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Assessments
+                          </p>
+                          {moduleAssessmentsFlat.map((a: any) => (
                             <div
                               key={`a-${a.assessment_id}`}
                               className="relative flex items-start"
@@ -410,7 +482,7 @@ export default function TrainingModules() {
                             </div>
                           ))}
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
                 </div>
@@ -426,7 +498,7 @@ export default function TrainingModules() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           moduleName={selectedModule.module_name}
-          moduleStatus={selectedModule.status}
+          moduleStatus={deriveModuleDisplayStatus(selectedModule)}
           moduleNumber={modules.indexOf(selectedModule) + 1}
           lessonsCount={
             (selectedModule.submodules?.length || 0) +
