@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Check, Circle } from "lucide-react";
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
@@ -9,13 +9,6 @@ import ContentRenderer from "../ui/container_renderer/container_renderer";
 
 interface CoursePlayerPageProps {
     onBackClick: () => void;
-}
-
-interface Lesson {
-    id: string;
-    title: string;
-    duration: string;
-    status: "completed" | "current" | "in_progress" | "locked";
 }
 
 interface ModuleData {
@@ -38,15 +31,11 @@ interface SubmoduleData {
     created_at: string;
 }
 
-interface AssessmentData {
-    assessment_id: string;
-    module_id: string;
-    submodule_id: string;
-    title: string;
-    description: string;
-    questions: any[];
-}
+const DEFAULT_TRACK_ID = 1;
 
+const authHeader = () => ({
+    Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+});
 
 export function Submodule({ }: CoursePlayerPageProps) {
     // const { module_id, sub_id } = useParams();
@@ -58,74 +47,174 @@ export function Submodule({ }: CoursePlayerPageProps) {
 
     const [moduleData, setModuleData] = useState<ModuleData | null>(null);
     const [submoduleData, setSubModuleData] = useState<SubmoduleData | null>(null);
-    const [assessmentData, setAssessmentData] = useState<AssessmentData[]>([]);
 
-    const courseProgress = 65; // Overall course progress percentage
+    const [courseProgress, setCourseProgress] = useState(0);
 
+    const loadModuleOutlineFromCatalog = useCallback(async () => {
+        const moduleId = param.module_id;
+        if (!moduleId) return;
+
+        try {
+            const { data } = await axiosInstance.get("/learning-progress/catalog", {
+                params: { trackId: DEFAULT_TRACK_ID },
+                headers: authHeader(),
+            });
+
+            const allModules = data?.modules ?? [];
+            const total = allModules.length;
+            const done = typeof data?.total_completed_modules === "number"
+                ? data.total_completed_modules
+                : allModules.filter((m: { status: string }) => m.status === "completed").length;
+
+            setCourseProgress(
+                total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0
+            );
+
+            const mod = allModules.find(
+                (m: { module_id: number }) => String(m.module_id) === String(moduleId)
+            );
+
+            if (!mod) {
+                setModuleData(null);
+                return;
+            }
+
+            const submodules = (mod.submodules ?? [])
+                .slice()
+                .sort(
+                    (a: { order_index?: number }, b: { order_index?: number }) =>
+                        (a.order_index ?? 0) - (b.order_index ?? 0)
+                )
+                .map(
+                    (s: {
+                        submodule_id: number;
+                        name: string;
+                        description?: string;
+                        status: string;
+                        duration?: number | string;
+                        assessments?: Array<{
+                            assessment_id: number;
+                            title?: string;
+                            description?: string;
+                            status?: string;
+                        }>;
+                    }) => ({
+                        ...s,
+                        submodule_id: s.submodule_id,
+                        submodule_name: s.name,
+                        submodule_description: s.description ?? "",
+                        status:
+                            s.status === "completed" ||
+                                s.status === "in_progress" ||
+                                s.status === "locked"
+                                ? s.status
+                                : "locked",
+                        assessments: (s.assessments ?? []).map((a) => ({
+                            ...a,
+                            status:
+                                a.status === "completed" ||
+                                a.status === "in_progress" ||
+                                a.status === "locked"
+                                    ? a.status
+                                    : "locked",
+                        })),
+                    })
+                );
+
+            setModuleData({
+                module_id: String(mod.module_id),
+                module_name: mod.name,
+                module_description: mod.description ?? "",
+                status: mod.status,
+                submodules,
+            });
+        } catch (error) {
+            console.error("Error loading catalog for module outline:", error);
+            setModuleData(null);
+        }
+    }, [param.module_id]);
 
     useEffect(() => {
-        console.log(`current module id = ${param.module_id}`);
-        async function fetchModuleData() {
-            //fetch module data from backend using module_id   
-            axiosInstance.get(`/module/with-id/${param.module_id}/with-submodules/with-status`, {
-                headers: {
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
-                }
-            })
-                .then((response) => {
-                    setModuleData(response.data);
-                })
-                .catch((error) => {
-                    console.error("Error fetching module data:", error);
-                });
-        }
+        const moduleId = param.module_id;
+        const subId = param.sub_id;
+        if (!moduleId || !subId) return;
 
-        function fetchSubModulesData() {
-            //fetch submodule data from backend using sub_id
-            axiosInstance.get(`/submodule/by/module/${param.module_id}/submodule/${param.sub_id}`, {
-                headers: {
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
-                }
-            })
-                .then((response) => {
-                    setSubModuleData(response.data);
-                })
-                .catch((error) => {
-                    console.error("Error fetching module data:", error);
-                });
-        }
+        let cancelled = false;
 
-        function fetchAssessmentData() {
-            //fetch assessment data from backend using module_id
-            axiosInstance.get(`/assessment/by/module/${param.module_id}`, {
-                headers: {
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
-                }
-            })
-                .then((response) => {
-                    setAssessmentData(response.data);
-                })
-                .catch((error) => {
-                    console.error("Error fetching module data:", error);
-                });
-        }
+        (async () => {
+            try {
+                await axiosInstance.post(
+                    "/learning-progress/start-submodule",
+                    {
+                        moduleId: Number(moduleId),
+                        submoduleId: Number(subId),
+                        trackId: DEFAULT_TRACK_ID,
+                    },
+                    { headers: authHeader() }
+                );
+            } catch (e) {
+                console.warn("start-submodule (non-fatal):", e);
+            }
+            if (!cancelled) await loadModuleOutlineFromCatalog();
+        })();
 
-        fetchModuleData();
-        fetchSubModulesData();
-        fetchAssessmentData();
-    }, [])
+        return () => {
+            cancelled = true;
+        };
+    }, [param.module_id, param.sub_id, loadModuleOutlineFromCatalog]);
+
+    useEffect(() => {
+        const moduleId = param.module_id;
+        const subId = param.sub_id;
+        if (!moduleId || !subId) return;
+
+        axiosInstance
+            .get(`/submodule/by/module/${moduleId}/submodule/${subId}`, {
+                headers: authHeader(),
+            })
+            .then((response) => {
+                const row = response.data;
+                if (!row) return;
+                setSubModuleData({
+                    submodule_id: String(row.submodule_id),
+                    module_id: String(row.module_id),
+                    name: row.name,
+                    description: row.description ?? "",
+                    content_type: row.content_type ?? "Videos",
+                    content_url: row.content_url ?? "",
+                    order_index: String(row.order_index ?? 0),
+                    duration: String(row.duration ?? 0),
+                    created_at: row.created_at ?? "",
+                });
+            })
+            .catch((error) => {
+                console.error("Error fetching submodule detail:", error);
+            });
+    }, [param.module_id, param.sub_id]);
 
     const handleLessonClick = (lessonId: string) => {
         setCurrentLesson(lessonId);
+        if (param.module_id) {
+            navigate(`/module/${param.module_id}/submodule/${lessonId}`);
+        }
     };
 
-    const getStatusIcon = (status: Lesson["status"]) => {
+    const handleAssessmentClick = (assessmentId: string | number) => {
+        if (param.module_id) {
+            navigate(`/module/${param.module_id}/assessment/${assessmentId}`);
+        }
+    };
+
+    const getStatusIcon = (status: string) => {
         switch (status) {
             case "completed":
                 return <Check className="w-4 h-4 text-green-500" />;
             case "in_progress":
                 return <Circle className="w-4 h-4 text-blue-500 fill-current" />;
+            case "current":
+                return <Circle className="w-4 h-4 text-blue-500 fill-current" />;
             case "locked":
+            default:
                 return <Circle className="w-4 h-4 text-gray-300" />;
         }
     };
@@ -165,7 +254,10 @@ export function Submodule({ }: CoursePlayerPageProps) {
                 <div className="flex-1 flex flex-col">
                         {/* <TrainingVideo video_url={submoduleData?.content_url ?? ""} /> */}
                         {submoduleData ? (
-                            <ContentRenderer submoduleData={submoduleData} />
+                            <ContentRenderer
+                                submoduleData={submoduleData}
+                                onProgressUpdated={loadModuleOutlineFromCatalog}
+                            />
                         ) : null}
                             {/* <h1>{submoduleData.name}</h1>
                             <p>{submoduleData.description}</p> */}
@@ -266,8 +358,17 @@ export function Submodule({ }: CoursePlayerPageProps) {
                     <div className="p-6 border-b border-gray-200">
                         <h2 className="text-lg font-semibold text-gray-900">Module Content</h2>
                         <p className="text-sm text-gray-600 mt-1">
-                            {/* {courseSections.reduce((total, section) => total + section.lessons.length, 0)} lessons */}
-                            {moduleData?.submodules.length} lessons
+                            {(() => {
+                                const subs = moduleData?.submodules ?? [];
+                                const n =
+                                    subs.length +
+                                    subs.reduce(
+                                        (acc, s: { assessments?: unknown[] }) =>
+                                            acc + (s.assessments?.length ?? 0),
+                                        0
+                                    );
+                                return `${n} items`;
+                            })()}
                         </p>
                     </div>
 
@@ -285,21 +386,34 @@ export function Submodule({ }: CoursePlayerPageProps) {
                                 </div>
 
                                 {/* Content always visible */}
-                                <div className="ml-2 mt-2 space-y-1">
-                                    {moduleData?.submodules.map((submodule) => (
+                                <div className="ml-2 mt-2 space-y-3">
+                                    {moduleData?.submodules.map((submodule) => {
+                                        const isCurrent =
+                                            String(submodule.submodule_id) === String(param.sub_id);
+                                        const rowActive =
+                                            isCurrent ||
+                                            submodule.status === "in_progress";
+                                        return (
+                                        <div key={submodule.submodule_id} className="space-y-1">
                                         <div
-                                            key={submodule.submodule_id}
-                                            className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${submodule.status === "in_progress"
+                                            className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
+                                                submodule.status === "locked"
+                                                    ? "cursor-not-allowed opacity-60"
+                                                    : "cursor-pointer"
+                                            } ${rowActive
                                                 ? "bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-200"
                                                 : "hover:bg-gray-50"
-                                                }`}
-                                            onClick={() => handleLessonClick(submodule.submodule_id)}
+                                                } ${isCurrent ? "ring-2 ring-orange-300" : ""}`}
+                                            onClick={() => {
+                                                if (submodule.status === "locked") return;
+                                                handleLessonClick(String(submodule.submodule_id));
+                                            }}
                                         >
                                             {getStatusIcon(submodule.status)}
 
                                             <div className="flex-1 min-w-0">
                                                 <p
-                                                    className={`text-sm truncate ${submodule.status === "in_progress"
+                                                    className={`text-sm truncate ${rowActive
                                                         ? "font-medium text-gray-900"
                                                         : "text-gray-700"
                                                         }`}
@@ -308,45 +422,49 @@ export function Submodule({ }: CoursePlayerPageProps) {
                                                 </p>
 
                                                 <p className="text-xs text-gray-500">
-                                                    {submodule.duration}
+                                                    {submodule.duration} min
                                                 </p>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Assessments */}
-                            <div key={moduleData?.module_id} className="w-full">
-
-                                {/* Module Title (No toggle, no arrow) */}
-                                <div className="flex items-center justify-between w-full p-3 rounded-lg bg-gray-50">
-                                    <h3 className="font-medium text-gray-900">
-                                        Assessments
-                                    </h3>
-                                </div>
-
-                                {/* Content always visible */}
-                                {/* Content always visible */}
-                                <div className="ml-2 mt-2 space-y-1">
-                                    {/* { JSON.stringify(typeof assessmentData) } */}
-                                    {assessmentData?.map((assessment) => (
-                                        <div
-                                            key={assessment.assessment_id}
-                                            className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-50`}
-                                            onClick={() => handleLessonClick(assessment.assessment_id)}
-                                        >
-                                            <div className="flex-1 min-w-0" onClick={() => navigate(`/module/${assessment.module_id}/assessment/${assessment.assessment_id}`)}>
-                                                <p className="text-sm truncate font-medium text-gray-900">
-                                                    {assessment.title}
-                                                </p>
-
-                                                <p className="text-xs text-gray-500">
-                                                    {assessment.description}
-                                                </p>
-                                            </div>
+                                        {(submodule.assessments ?? []).map((assessment) => {
+                                            const aActive = assessment.status === "in_progress";
+                                            return (
+                                                <div
+                                                    key={assessment.assessment_id}
+                                                    className={`ml-4 flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
+                                                        assessment.status === "locked"
+                                                            ? "cursor-not-allowed opacity-60"
+                                                            : "cursor-pointer"
+                                                    } ${aActive
+                                                        ? "bg-violet-50 border border-violet-200"
+                                                        : "hover:bg-gray-50"
+                                                    }`}
+                                                    onClick={() => {
+                                                        if (assessment.status === "locked") return;
+                                                        handleAssessmentClick(assessment.assessment_id);
+                                                    }}
+                                                >
+                                                    {getStatusIcon(assessment.status ?? "locked")}
+                                                    <div className="flex-1 min-w-0">
+                                                        <p
+                                                            className={`text-sm truncate ${
+                                                                aActive
+                                                                    ? "font-medium text-gray-900"
+                                                                    : "text-gray-700"
+                                                            }`}
+                                                        >
+                                                            {assessment.title}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">
+                                                            Assessment
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                         </div>
-                                    ))}
+                                    );
+                                    })}
                                 </div>
                             </div>
                         </div>

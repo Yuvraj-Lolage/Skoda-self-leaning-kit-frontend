@@ -7,6 +7,7 @@ import {
 import { Button } from "../../ui/button";
 import { UserDetailModal } from "./user_details_modal";
 import axiosInstance from "../../../API/axios_instance";
+import { formatLastActive } from "../../../helper/format_datetime";
 
 interface AdminProgressPageProps {
   onBackClick: () => void;
@@ -41,15 +42,15 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const response = await axiosInstance.get('/user/all',{
-          headers:{
-            Authorization: `Bearer ${ localStorage.getItem('token') }`
+        const response = await axiosInstance.get('/user/all', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
         let usersData = Array.isArray(response.data) ? response.data : response.data?.data || [];
-        
+
         const learnerUsers = usersData.filter((user: any) => user.role !== 'Admin' && user.role !== 'admin');
-        
+
         const fetchedUsers: UserProgress[] = learnerUsers.map((user: any) => ({
           id: user.id?.toString() || "1",
           name: user.name || "User",
@@ -59,7 +60,7 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
           totalModules: 7, // Matches screenshot 0/7
           progress: user.progress || 0,
           latestScore: user.latestScore || 8, // Matches screenshot 8%
-          lastActive: user.lastActive || "Never",
+          lastActive: user.last_active || "Never",
           modules: [],
           assessments: [],
           xp: user.xp || 0,
@@ -79,16 +80,16 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
 
     const fetchModules = async () => {
       try {
-        const response = await axiosInstance.get('/module/all',{
-          headers:{
-            Authorization: `Bearer ${ localStorage.getItem('token') }`
+        const response = await axiosInstance.get('/module/all', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
         setModules(response.data);
       } catch (error) {
         setLoading(false);
         console.log(error);
-        
+
       }
     };
 
@@ -96,7 +97,7 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
     fetchModules();
   }, []);
 
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -148,7 +149,7 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
       )} */}
 
       {/* Search Input */}
-      <div className="max-w-7xl mx-auto mb-6">
+      <div className="max-w-10xl mx-auto mb-6">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -162,13 +163,13 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
       </div>
 
       {/* Table - Replicating All Columns from Image */}
-      <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="max-w-10xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100">
           <h3 className="text-lg font-bold text-gray-800">All Users Rankings</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-white text-[11px] uppercase tracking-wider font-bold text-gray-500 border-b">
+            <thead className="bg-white text-[11px] uppercase tracking-wider font-bold text-gray-500 border-b text-center">
               <tr>
                 <th className="px-6 py-4">Rank</th>
                 <th className="px-6 py-4">User ID</th>
@@ -176,7 +177,6 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
                 <th className="px-6 py-4">XP Score</th>
                 <th className="px-6 py-4">Completed Modules</th>
                 <th className="px-6 py-4">Progress</th>
-                <th className="px-6 py-4">Latest Score</th>
                 <th className="px-6 py-4">Last Active</th>
                 <th className="px-6 py-4">Actions</th>
               </tr>
@@ -222,19 +222,19 @@ export function AdminProgressPage({ onBackClick }: AdminProgressPageProps) {
                   <td className="px-6 py-4 min-w-[150px]">
                     <div className="flex items-center gap-3">
                       <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-blue-500 transition-all" 
+                        <div
+                          className="h-full bg-blue-500 transition-all"
                           style={{ width: `${user.progress || 0}%` }}
                         />
                       </div>
                       <span className="text-xs font-bold text-gray-700">{user.progress || 0}%</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-rose-500">
-                    {user.latestScore}%
-                  </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {user.lastActive}
+                    {user.lastActive && user.lastActive !== "Never"
+                      ? formatLastActive(user.lastActive)
+                      : "Never"
+                    }
                   </td>
                   <td className="px-6 py-4">
                     <Button
