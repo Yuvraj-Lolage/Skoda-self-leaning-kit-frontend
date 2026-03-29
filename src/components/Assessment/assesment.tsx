@@ -27,7 +27,7 @@ type QuizPageProps = {
   onQuizComplete?: (score: number, total: number) => void;
 };
 
-const TIMER_DURATION = 5;
+const TIMER_DURATION = 15;
 
 const Assessment: React.FC<QuizPageProps> = ({ onQuizComplete }) => {
   const { module_id, assessment_id } = useParams<{ module_id: string; assessment_id: string }>();
@@ -164,13 +164,23 @@ const Assessment: React.FC<QuizPageProps> = ({ onQuizComplete }) => {
     });
   };
 
-  const calculateEarnedXP = (isCorrect: boolean, timeRemaining: number, multi: boolean) => {
+  const calculateEarnedXP = (isCorrect: boolean, timeRemaining: number, multi: boolean, totalQuestions: number) => {
     if (!isCorrect) return 0;
-    // Base: 10 for single, 15 for multi
-    const baseXP = multi ? 15 : 10;
-    // Bonus: up to 50% extra for speed
-    const speedBonus = Math.floor((timeRemaining / TIMER_DURATION) * 5);
-    return baseXP + speedBonus;
+    
+    // Base XP allocation per question (total 50 XP max across all questions)
+    const totalXPBudget = 50;
+    const baseXPPerQuestion = totalXPBudget / totalQuestions;
+    
+    // Question type multiplier: multi-choice is harder, gets 1.5x base
+    const typeMultiplier = multi ? 1.5 : 1.0;
+    const baseXP = baseXPPerQuestion * typeMultiplier;
+    
+    // Time bonus: up to 50% of base XP for answering quickly
+    // Higher timeRemaining = faster answer = more bonus
+    const maxTimeBonus = baseXP * 0.5;
+    const timeBonus = (timeRemaining / TIMER_DURATION) * maxTimeBonus;
+    
+    return Math.round(baseXP + timeBonus);
   };
 
   // const submitAssessmentResult = async () => {
@@ -246,7 +256,7 @@ const Assessment: React.FC<QuizPageProps> = ({ onQuizComplete }) => {
 
     if (isCorrect) {
       setScore(s => s + 1);
-      setTotalXP(prev => Math.min(50, prev + calculateEarnedXP(true, timer, isMultiChoice)));
+      setTotalXP(prev => Math.min(50, prev + calculateEarnedXP(true, timer, isMultiChoice, quiz.length)));
     }
 
     setShowFeedback(true);

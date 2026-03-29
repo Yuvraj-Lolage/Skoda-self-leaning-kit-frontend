@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import { AdminLeaderboardSection } from "./admin_leaderboard_section";
 
+
 interface AdminProgressPageProps {
   onBackClick: () => void;
 }
