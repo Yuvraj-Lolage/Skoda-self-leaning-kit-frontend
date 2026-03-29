@@ -30,7 +30,7 @@ export function LoginPage() {
 
                 setTimeout(() => {
                     window.location.reload();
-                }, 100);
+                }, 1000);
             } else {
                 ToastHelper.error("Something went wrong, please try again.");
                 console.error("something went wrong");

@@ -98,7 +98,7 @@ function App() {
 
           <Route
             path="/admin/view-progress"
-            element={token ? <AdminProgressPage onBackClick={() => { navigate("/") }} /> : <Navigate to="/login" />}
+            element={token ? <AdminProgressPage /> : <Navigate to="/login" />}
           />
 
           <Route
@@ -111,7 +111,7 @@ function App() {
           />
           <Route
             path="/user/view-progress"
-            element={token ? <IndividualViewProgress onBackClick={() => { navigate("/") }} /> : <Navigate to="/login" />}
+            element={token ? <IndividualViewProgress /> : <Navigate to="/login" />}
           />
 
           <Route

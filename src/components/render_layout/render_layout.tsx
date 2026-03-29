@@ -145,10 +145,10 @@ const Render_layout: React.FC = () => {
       //   return <Navigate to="/user/view-progress" replace />;
 
       case "View Progress":
-        return <IndividualViewProgress onBackClick={() => navigate("", { replace: true })} />;
+        return <IndividualViewProgress />;
 
       case "Admin View Progress":
-        return <AdminProgressPage onBackClick={() => navigate("", { replace: true })} />;
+        return <AdminProgressPage />;
       case "Add User":
         return <AddUser />;
       case "help":

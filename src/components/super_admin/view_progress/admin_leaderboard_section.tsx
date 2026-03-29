@@ -397,7 +397,7 @@ export function AdminLeaderboardSection() {
                   className="hover:bg-yellow-50/50 transition-colors group"
                 >
                   {/* 🏆 RANK */}
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-center">
                     {user.rank === 1 ? (
                       <div className="flex items-center justify-center gap-1 text-lg">
                         🏆
@@ -427,7 +427,7 @@ export function AdminLeaderboardSection() {
                   </td>
 
                   {/* USER ID */}
-                  <td className="px-6 py-4 text-sm font-bold text-gray-700">
+                  <td className="px-6 py-4 text-sm font-bold text-gray-700 text-center">
                     {user.id}
                   </td>
 
@@ -444,14 +444,14 @@ export function AdminLeaderboardSection() {
                   </td>
 
                   {/* XP */}
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-center">
                     <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold">
                       {user.xp}
                     </span>
                   </td>
 
                   {/* COMPLETED MODULES */}
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-gray-600 text-center">
                     {user.completedModules} / {user.totalModules}
                   </td>
 
@@ -471,14 +471,14 @@ export function AdminLeaderboardSection() {
                   </td>
 
                   {/* LAST ACTIVE */}
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500 text-center">
                     {user.lastActive
                       ? formatLastActive(user.lastActive)
                       : "Never"}
                   </td>
 
                   {/* ACTION */}
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 flex items-center justify-center">
                     <Button
                       variant="ghost"
                       className="text-blue-600 flex items-center gap-1 font-bold text-xs"
