@@ -396,6 +396,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { formatLastActive } from "../../../helper/format_datetime";
+import { generateUserReport } from "../../../utils/generateUserReport";
 
 interface UserDetailModalProps {
   isOpen: boolean;

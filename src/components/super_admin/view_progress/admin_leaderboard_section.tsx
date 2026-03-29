@@ -245,11 +245,12 @@
 // }
 
 import { useState, useEffect } from "react";
-import { Search, Eye } from "lucide-react";
+import { Search, Eye, Download } from "lucide-react";
 import { Button } from "../../ui/button";
 import { UserDetailModal } from "./user_details_modal";
 import axiosInstance from "../../../API/axios_instance";
 import { formatLastActive } from "../../../helper/format_datetime";
+import { generateSingleUserReport } from "../../../utils/generateUserReport";
 
 export interface UserProgress {
   id: string;
@@ -273,6 +274,7 @@ export function AdminLeaderboardSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [users, setUsers] = useState<UserProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingUserId, setDownloadingUserId] = useState<string | null>(null);
 
   // ✅ FETCH FROM SINGLE API
   useEffect(() => {
@@ -342,6 +344,19 @@ export function AdminLeaderboardSection() {
 
     fetchLeaderboard();
   }, []);
+
+  /* ================= DOWNLOAD INDIVIDUAL USER REPORT ================= */
+  const handleDownloadUserReport = async (user: UserProgress) => {
+    setDownloadingUserId(user.id);
+    try {
+      generateSingleUserReport(user);
+    } catch (err) {
+      console.error("Failed to download report", err);
+      alert("Failed to download report. Please try again.");
+    } finally {
+      setDownloadingUserId(null);
+    }
+  };
 
   // ✅ SEARCH FILTER
   const filteredUsers = users.filter(
@@ -486,10 +501,22 @@ export function AdminLeaderboardSection() {
                         setSelectedUser(user);
                         setIsModalOpen(true);
                       }}
+
                     >
                       <Eye className="w-4 h-4" /> View Details
                     </Button>
+
+                    <button
+                      onClick={() => handleDownloadUserReport(user)}
+                      disabled={downloadingUserId === user.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-md text-xs font-medium transition-all duration-150 shadow-sm hover:shadow"                    >
+                      <Download className="w-4 h-4" />
+                      {downloadingUserId === user.id ? "Downloading..." : "Download Report"}
+                    </button>
                   </td>
+
+                    
+                  
                 </tr>
               ))}
             </tbody>
