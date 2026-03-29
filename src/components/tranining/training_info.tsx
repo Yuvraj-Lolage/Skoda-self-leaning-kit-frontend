@@ -265,24 +265,7 @@ export default function TrainingModules() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow border border-gray-200">
-      {/* Header with back button */}
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-200">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
-        >
-          <span className="text-lg">←</span>
-          Back
-        </button>
-
-        {/* Page Title */}
-        <h3 className="text-lg font-semibold text-gray-800">
-          Training Modules
-        </h3>
-      </div>
-
+    <div className="p-0">
       <TrainingAnalysis
         userName={userData?.name}
         totalModules={modules.length}
@@ -309,7 +292,7 @@ export default function TrainingModules() {
           }
         }}
       />
-      <div className="p-6" id="training-modules">
+      <div className="p-3" id="training-modules">
         <div className="space-y-4">
           <h4 className="text-base font-medium text-gray-800">Training Modules</h4>
           <div className="grid grid-cols-1 gap-3">

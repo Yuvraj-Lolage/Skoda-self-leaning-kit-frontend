@@ -223,18 +223,6 @@ export function LoginPage() {
                             </button>
 
                         </form>
-
-                        {/* Footer */}
-                        <div className="mt-6 text-center">
-                            <p className="text-base ">
-                                Don’t have an account?{" "}
-                                <Link to="/signup">
-                                    <span className="text-blue-600 hover:text-blue-500 font-semibold">
-                                        Sign up for free
-                                    </span>
-                                </Link>
-                            </p>
-                        </div>
                     </div>
                 </div>
             </div>

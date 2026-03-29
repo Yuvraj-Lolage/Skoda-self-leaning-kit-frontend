@@ -16,7 +16,15 @@ import { ToastHelper } from "../ui/toast_helper/toast";
 import ManageAssessments from "../super_admin/add_quiz/create_quiz";
 import Help from "../Help/help";
 import AddUser from "../super_admin/add_user/add_user";
+import IndividualViewProgress from "../Individual_view_progress/individual_view_progress";
+import TrainingModules from "../tranining/training_info";
 
+
+function isAdminDashboardRole(role: string | null) {
+  if (!role) return false;
+  const r = String(role).toLowerCase().replace(/\s+/g, "_");
+  return r === "admin" || r === "super_admin";
+}
 
 const Render_layout: React.FC = () => {
 
@@ -102,12 +110,12 @@ const Render_layout: React.FC = () => {
           return <CenterLoader />;
         }
 
-        return currentUserRole === "Admin"
+        return isAdminDashboardRole(currentUserRole)
           ? <AdminDashboard />
           : <Dashboard />;
 
       case "training":
-        return <Navigate to="/training" replace />;
+        return <TrainingModules />;
 
       case "settings":
         return <h2 className="text-xl">⚙️ Settings Content</h2>;
@@ -121,23 +129,28 @@ const Render_layout: React.FC = () => {
       case "add-quiz":
         return <ManageAssessments />;
 
-      case "view-progress":
-        if (!currentUserRole) {
-          return <CenterLoader />;
-        }
+      // case "view-progress":
+      //   if (!currentUserRole) {
+      //     return <CenterLoader />;
+      //   }
 
-        if (currentUserRole === "Admin") {
-          return (
-            <AdminProgressPage
-              onBackClick={() => navigate("", { replace: true })}
-            />
-          );
-        }
+      //   if (isAdminDashboardRole(currentUserRole)) {
+      //     return (
+      //       <AdminProgressPage
+      //         onBackClick={() => navigate("", { replace: true })}
+      //       />
+      //     );
+      //   }
 
-        return <Navigate to="/user/view-progress" replace />;
+      //   return <Navigate to="/user/view-progress" replace />;
 
+      case "View Progress":
+        return <IndividualViewProgress onBackClick={() => navigate("", { replace: true })} />;
+
+      case "Admin View Progress":
+        return <AdminProgressPage onBackClick={() => navigate("", { replace: true })} />;
       case "Add User":
-        return <AddUser/> ;
+        return <AddUser />;
       case "help":
         return <Help />;
 
@@ -209,7 +222,7 @@ const Render_layout: React.FC = () => {
     // 👉 show toast only once
     if (message && status === "success") {
       ToastHelper.success(message);
-    }else if (message && status === "error") {
+    } else if (message && status === "error") {
       ToastHelper.error(message);
     }
 
@@ -257,36 +270,64 @@ const Render_layout: React.FC = () => {
   //   }
   // }, [token]);
 
-  useEffect(() => {
-    if (!token) {
-      logout("Session expired. Please login again.", "error");
-      return;
-    }
+  // useEffect(() => {
+  //   if (!token) {
+  //     logout("Session expired. Please login again.", "error");
+  //     return;
+  //   }
 
-    if (isTokenExpired(token)) {
-      logout("Session expired. Please login again.", "error");
-      return;
-    }
-  }, [token]);
+  //   if (isTokenExpired(token)) {
+  //     logout("Session expired. Please login again.", "error");
+  //     return;
+  //   }
+  // }, [token]);
+
+  // useEffect(() => {
+  //   if (!token) return;
+
+  //   try {
+  //     const payload = JSON.parse(atob(token.split(".")[1]));
+  //     const expiryTime = payload.exp * 1000;
+  //     const timeout = expiryTime - Date.now();
+
+  //     if (timeout <= 0) {
+  //       logout("Session expired. Please login again.", "error");
+  //       return;
+  //     }
+
+  //     const timer = setTimeout(() => {
+  //       logout("Session expired. Please login again.", "error");
+  //     }, timeout);
+
+  //     return () => clearTimeout(timer);
+  //   } catch {
+  //     logout("Invalid session. Please login again.", "error");
+  //   }
+  // }, [token]);
 
   useEffect(() => {
     if (!token) return;
 
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const expiryTime = payload.exp * 1000;
-      const timeout = expiryTime - Date.now();
-
-      if (timeout <= 0) {
+      // ✅ 1. Immediate expiry check (reuse your function)
+      if (isTokenExpired(token)) {
         logout("Session expired. Please login again.", "error");
         return;
       }
+
+      // ✅ 2. Decode once for timer
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const expiryTime = payload.exp * 1000;
+      const currentTime = Date.now();
+
+      const timeout = expiryTime - currentTime;
 
       const timer = setTimeout(() => {
         logout("Session expired. Please login again.", "error");
       }, timeout);
 
       return () => clearTimeout(timer);
+
     } catch {
       logout("Invalid session. Please login again.", "error");
     }
@@ -300,9 +341,7 @@ const Render_layout: React.FC = () => {
 
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
-      const currentTime = Date.now() / 1000;
-
-      return payload.exp < currentTime;
+      return payload.exp * 1000 < Date.now(); // cleaner
     } catch {
       return true;
     }

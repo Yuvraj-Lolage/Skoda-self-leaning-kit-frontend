@@ -45,7 +45,7 @@ const TrainingAnalysis: React.FC<TrainingAnalysisProps> = ({
       : "Open a lesson below to continue.";
 
   return (
-    <div className="p-6 h-auto">
+    <div className="p-3 h-auto">
       <div
         className="bg-white rounded-xl p-6 shadow-lg"
         id="training-analysis-card"

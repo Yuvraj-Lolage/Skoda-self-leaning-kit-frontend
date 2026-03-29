@@ -27,7 +27,11 @@ export default function Sidebar({ activeTab, setActiveTab, startTour }: SidebarP
 
   const userData = getTokenData();
 
-  const isAdmin = userData?.role === "Admin";
+  const roleKey = String(userData?.role || "")
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+  const isAdmin =
+    roleKey === "admin" || roleKey === "super_admin";
 
   usePageTour(
     isAdmin ? TOUR_KEYS.ADMIN_DASHBOARD : TOUR_KEYS.DASHBOARD,
@@ -39,7 +43,7 @@ export default function Sidebar({ activeTab, setActiveTab, startTour }: SidebarP
   const userItems = [
     { icon: LayoutDashboard, label: "Dashboard", key: "dashboard", id: "sidebar-dashboard" },
     { icon: BookOpen, label: "Training", key: "training", id: "sidebar-modules" },
-    { icon: GraduationCap, label: "View Progress", key: "view-progress", id: "sidebar-view-progress" },
+    { icon: GraduationCap, label: "View Progress", key: "View Progress", id: "sidebar-view-progress" },
     { icon: Settings, label: "Help", key: "help", id: "sidebar-help" },
   ];
 
@@ -49,17 +53,24 @@ export default function Sidebar({ activeTab, setActiveTab, startTour }: SidebarP
     { icon: FilePlus, label: "Add SubModule", key: "add-submodule", id: "add-submodule" },
     { icon: ClipboardList, label: "Add Quiz", key: "add-quiz", id: "add-quiz" },
     { icon: UserPlus, label: "Add User", key: "Add User", id: "add-user" },
-    { icon: BarChart3, label: "View Progress", key: "view-progress", id: "view-progress" },
+    { icon: BarChart3, label: "View Progress", key: "Admin View Progress", id: "admin-view-progress" },
   ];
 
 
   useEffect(() => {
     function dynamicNavigationMenu() {
       const userData = getTokenData();
-      if (userData && userData.role === "Admin") {
-        setNavigationItems(adminItems)
+      if (userData) {
+        const r = String(userData.role || "")
+          .toLowerCase()
+          .replace(/\s+/g, "_");
+        if (r === "admin" || r === "super_admin") {
+          setNavigationItems(adminItems);
+        } else {
+          setNavigationItems(userItems);
+        }
       } else {
-        setNavigationItems(userItems)
+        setNavigationItems(userItems);
       }
     }
 

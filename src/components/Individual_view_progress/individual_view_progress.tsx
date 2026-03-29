@@ -181,22 +181,8 @@ export default function IndividualViewProgress({ }: GradesPageProps) {
   /* ================= RENDER ================= */
 
   return (
-    <div className="flex-1 p-8 bg-gray-50">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-200">
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
-        >
-          <span className="text-lg">←</span>
-          Back
-        </button>
-        <h3 className="text-lg font-semibold text-gray-800">
-          Assessment Progress
-        </h3>
-      </div>
-
-      <p className="text-gray-600 my-6">
+    <div className="flex-1 p-3 bg-gray-50">
+      <p className="text-gray-600 my-3">
         Track your assessment attempts and performance
       </p>
 
