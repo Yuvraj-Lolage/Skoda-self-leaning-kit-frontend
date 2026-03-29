@@ -38,7 +38,7 @@ const ModuleManager = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         
         {/* LEFT: MODULE LIST */}
-        <ModuleList modules={modules} />
+        <ModuleList modules={modules} fetchModules={fetchModules} />
 
         {/* RIGHT: ADD MODULE FORM */}
         <ModuleForm modules={modules} refresh={fetchModules} />

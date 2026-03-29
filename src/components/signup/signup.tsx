@@ -22,29 +22,6 @@ export function SignupPage() {
         setFormData({ ...formData, [name]: value });
     };
 
-    // const handleSignup = async (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //     if (formData.password !== formData.confirmPassword) {
-    //         ToastHelper.error("Passwords do not match!");
-    //         return;
-    //     }
-    //     try {
-    //         setLoading(true);
-    //         const response = await axiosInstance.post("/user/signup", formData);
-
-    //         if (response.status === 201) {
-    //             ToastHelper.success("Signup successful! Please log in.");
-    //             navigate("/login", { replace: true });
-    //         } else {
-    //             ToastHelper.error("Something went wrong, please try again.");
-    //         }
-    //     } catch (error) {
-    //         ToastHelper.error("Something went wrong, please try again.");
-    //         console.error(error);
-    //     }
-    //     setLoading(false);
-    // };
-
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -62,7 +39,7 @@ export function SignupPage() {
                 role: "User", // or dynamic if needed
             };
 
-            const response = await axiosInstance.post("/user/signup", payload);
+            const response = await axiosInstance.post("/auth/signup", payload);
 
             if (response.status === 201) {
                 ToastHelper.success("Signup successful! Please log in.");

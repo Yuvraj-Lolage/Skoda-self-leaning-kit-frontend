@@ -13,6 +13,8 @@ import {
 } from "recharts";
 import axiosInstance from "../../API/axios_instance";
 
+const DEFAULT_TRACK_ID = 1;
+
 export function ChartsSection() {
   const [totalCompletedModules, setTotalCompletedModules] =
     useState<number>(0);
@@ -20,42 +22,30 @@ export function ChartsSection() {
 
   /* ================= API CALLS ================= */
 
-  const fetchCompletedModules = async () => {
+  /** Loads counts from user_learning_path_progress (recalculated on server). */
+  const fetchTrainingProgress = async () => {
     try {
-      const res = await axiosInstance.get(
-        "/module/with-submodules/with-status/all",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      setTotalCompletedModules(
-        res.data?.modules?.total_completed_modules ?? 0
-      );
-    } catch (err) {
-      console.error("Failed to load module progress", err);
-    }
-  };
-
-  const fetchAllModules = async () => {
-    try {
-      const res = await axiosInstance.get("/module/all", {
+      const res = await axiosInstance.get("/learning-progress/track", {
+        params: { trackId: DEFAULT_TRACK_ID },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
-      setAllModules(res.data?.length ?? 0);
+      const lp = res.data?.learningPath;
+      setTotalCompletedModules(
+        Number(lp?.completed_modules_count ?? 0)
+      );
+      setAllModules(Number(lp?.total_modules_count ?? 0));
     } catch (err) {
-      console.error("Error fetching all modules", err);
+      console.error("Failed to load training progress", err);
+      setTotalCompletedModules(0);
+      setAllModules(0);
     }
   };
 
   useEffect(() => {
-    fetchCompletedModules();
-    fetchAllModules();
+    fetchTrainingProgress();
   }, []);
 
   /* ================= DERIVED DATA ================= */

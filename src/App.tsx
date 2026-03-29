@@ -19,6 +19,7 @@ import { TourProvider } from "./context/tour_context";
 import IndividualViewProgress from './components/Individual_view_progress/individual_view_progress';
 import ManageAssessments from './components/super_admin/add_quiz/create_quiz';
 import { SignupPage } from './components/signup/signup';
+import Help from './components/Help/help';
 
 function App() {
   const navigate = useNavigate();
@@ -111,6 +112,11 @@ function App() {
           <Route
             path="/user/view-progress"
             element={token ? <IndividualViewProgress onBackClick={() => { navigate("/") }} /> : <Navigate to="/login" />}
+          />
+
+          <Route
+            path="/help"
+            element={token ? <Help /> : <Navigate to="/login" />}
           />
         </Routes>
       </TourProvider>

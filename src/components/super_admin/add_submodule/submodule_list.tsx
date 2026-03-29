@@ -1,25 +1,51 @@
 import type { Submodule } from "../../../types/SubModule";
 import { Trash2 } from "lucide-react";
 import { ToastHelper } from "../../ui/toast_helper/toast";
+import axiosInstance from "../../../API/axios_instance";
 
+interface SubmoduleListProps {
+  submodules: Submodule[];
+  fetchSubmodules: (moduleId: number) => void;
+  moduleId: number;
+}
 
-const SubmoduleList = ({ submodules }: { submodules: Submodule[] }) => {
+const SubmoduleList = ({ submodules, fetchSubmodules, moduleId }: SubmoduleListProps) => {
 
-
-  const handleDeleteSubmodule = (submoduleId:any) => {
+  const handleDeleteSubmodule = async (submoduleId: any) => {
   try {
     const isConfirmed = window.confirm(
       "Are you sure you want to delete this submodule?"
     );
-  
+
     if (!isConfirmed) return;
-  
+
     console.log("Deleting submodule with submodule_id:", submoduleId);
-    ToastHelper.success("Submodule deleted successfully!");
-  
-  } catch (error) {
-    console.error(error);
-    ToastHelper.error("Failed to delete submodule. Please try again.");
+
+    // 🔹 API call
+    const response = await axiosInstance.delete(
+      `/submodule/delete/${submoduleId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${ localStorage.getItem("token") }`,
+        },
+      }
+    );
+
+    // 🔹 Success toast
+    ToastHelper.success(
+      response?.data?.message || "Submodule deleted successfully!"
+    );
+
+    // 🔹 Refresh list (VERY IMPORTANT)
+    fetchSubmodules(moduleId);
+
+  } catch (error: any) {
+    console.error("Delete submodule error:", error);
+
+    // 🔹 Error toast
+    ToastHelper.error(
+      error?.response?.data?.message || "Failed to delete submodule."
+    );
   }
 };
 

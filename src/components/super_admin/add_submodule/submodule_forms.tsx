@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Submodule } from "../../../types/SubModule";
 import { ToastHelper } from "../../ui/toast_helper/toast";
 import { Toaster } from "react-hot-toast";
@@ -19,7 +19,11 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
 
   const [loading, setLoading] = useState(false);
 
-  const fileTypes = ["Video", "Presentation", "DeepLink", "PDF", "Excel", "word", "Wed-based content"];
+  useEffect(() => {
+    setPosition(submodules.length + 1);
+  }, [submodules.length]);
+
+  const fileTypes = ["Video", "Presentation", "DeepLink", "PDF"];
 
   const FILE_TYPE_MIME_MAP: Record<string, string[]> = {
     Video: ["video/mp4", "video/webm", "video/ogg"],
@@ -31,17 +35,17 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
 
     PDF: ["application/pdf"],
 
-    Excel: [
-      "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ],
+    // Excel: [
+    //   "application/vnd.ms-excel",
+    //   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    // ],
 
-    word: [
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ],
+    // word: [
+    //   "application/msword",
+    //   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    // ],
 
-    // No file upload needed
+    // No file upload needed`
     DeepLink: [],
     "Wed-based content": [],
   };
@@ -90,7 +94,7 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
 
     // If selected type does not require file
     if (fileType === "DeepLink" || fileType === "Wed-based content") {
-      alert("This content type does not require file upload");
+      ToastHelper.info("This content type does not use file upload in this form yet.");
       e.target.value = "";
       return;
     }
@@ -98,27 +102,33 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
     const allowedMimeTypes = FILE_TYPE_MIME_MAP[fileType];
 
     if (!allowedMimeTypes?.includes(selectedFile.type)) {
-      alert(`Invalid file type for ${fileType}`);
+      ToastHelper.error(`Invalid file type for ${fileType}`);
       e.target.value = "";
       return;
     }
 
     setFile(selectedFile);
-    console.log("Selected file:", selectedFile);
   };
 
 
 
   const handleSubmit = async () => {
     setLoading(true);
-    if (!name || !description) {
+    if (!name.trim() || !description.trim()) {
       ToastHelper.error("Name and Description are required");
       setLoading(false);
       return;
     }
 
+    if (!fileType) {
+      ToastHelper.error("Select a file type.");
+      setLoading(false);
+      return;
+    }
+
     if (!file) {
-      alert("Video file is required");
+      ToastHelper.error("A file is required for this content type.");
+      setLoading(false);
       return;
     }
 
@@ -126,25 +136,11 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
 
     // Append ALL fields
     formData.append("module_id", String(moduleId));
-    formData.append("submodule_name", name);
-    formData.append("submodule_description", description);
+    formData.append("submodule_name", name.trim());
+    formData.append("submodule_description", description.trim());
     formData.append("order_index", String(position));
     formData.append("file", file);
     formData.append("file_type", fileType);
-
-    // ================= LOG FORM DATA =================
-    console.log("🚀 Submitting Submodule FormData:");
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        console.log(`${key}:`, {
-          name: value.name,
-          type: value.type,
-          size: value.size
-        });
-      } else {
-        console.log(`${key}:`, value);
-      }
-    }
 
     try {
       await axiosInstance.post(
@@ -154,8 +150,6 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
             "x-file-type": fileType,
-            "x-module-index": moduleId,
-            "x-submodule-index": position
           },
         }
       );
@@ -171,8 +165,10 @@ const SubmoduleForm = ({ moduleId, submodules, refresh }: Props) => {
       refresh();
 
     } catch (error: any) {
-      console.error("❌ Error creating submodule:", error?.response || error);
-      alert(error?.response?.data?.message || "Failed to create submodule");
+      console.error("Error creating submodule:", error?.response || error);
+      ToastHelper.error(
+        error?.response?.data?.message || "Failed to create submodule"
+      );
     } finally {
       setLoading(false);
     }

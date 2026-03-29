@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Module } from "../../../types/Module";
 import axiosInstance from "../../../API/axios_instance";
 import { ToastHelper } from "../../ui/toast_helper/toast";
@@ -12,9 +12,13 @@ interface Props {
 const ModuleForm = ({ modules, refresh }: Props) => {
     const [module_name, setName] = useState("");
     const [module_description, setDescription] = useState("");
-    const [duration, setDuration] = useState<number>(0);
+    const [duration, setDuration] = useState<number>(1);
     const [order_index, setPosition] = useState(modules.length + 1);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        setPosition(modules.length + 1);
+    }, [modules.length]);
 
     const handleSubmit = async () => {
         try {
@@ -35,8 +39,9 @@ const ModuleForm = ({ modules, refresh }: Props) => {
                 ToastHelper.error("Module description cannot be empty.");
                 throw new Error("ValidationError: module_description is required");
             }
-            if (newModule.duration == null || Number.isNaN(Number(newModule.duration)) || Number(newModule.duration) <= 0) {
-                ToastHelper.error("Duration must be a positive number.");
+            const dur = Number(newModule.duration);
+            if (newModule.duration == null || Number.isNaN(dur) || dur <= 0) {
+                ToastHelper.error("Duration must be a positive number (minutes).");
                 throw new Error("ValidationError: duration must be a positive number");
             }
             if (newModule.order_index == null || Number.isNaN(Number(newModule.order_index)) || Number(newModule.order_index) <= 0) {
@@ -53,7 +58,7 @@ const ModuleForm = ({ modules, refresh }: Props) => {
             
             setName("");
             setDescription("");
-            setDuration(0);
+            setDuration(1);
             setPosition(modules.length + 1);
             ToastHelper.success("Module added successfully!");
             refresh();
@@ -90,6 +95,20 @@ const ModuleForm = ({ modules, refresh }: Props) => {
                     onChange={(e) => setDescription(e.target.value)}
                     maxLength={80}
                 />
+
+                <div>
+                    <label className="text-gray-600 text-sm font-medium">
+                        Duration (minutes)
+                    </label>
+                    <input
+                        type="number"
+                        min={1}
+                        className="w-full mt-1 p-3 rounded-xl border border-gray-200 
+          focus:ring-2 focus:ring-purple-500 outline-none"
+                        value={duration || ""}
+                        onChange={(e) => setDuration(Number(e.target.value))}
+                    />
+                </div>
 
                 <div>
                     <label className="text-gray-600 text-sm font-medium">

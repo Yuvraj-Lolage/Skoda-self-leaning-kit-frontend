@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Sidebar from "../ui/navigation_bar/sidebar";
 import Dashboard from "../dashboard/dashboard";
 import DashboardHeader from "../ui/dashboard_header/dashboard_header";
@@ -13,48 +13,25 @@ import { AdminProgressPage } from "../super_admin/view_progress/admin_progress";
 import AdminDashboard from "../super_admin/admin_dashboard/admin_dashboard";
 import axiosInstance from "../../API/axios_instance";
 import { ToastHelper } from "../ui/toast_helper/toast";
-// import IndividualViewProgress from "../Individual_view_progress/individual_view_progress";
 import ManageAssessments from "../super_admin/add_quiz/create_quiz";
+import Help from "../Help/help";
+import AddUser from "../super_admin/add_user/add_user";
+import IndividualViewProgress from "../Individual_view_progress/individual_view_progress";
+import TrainingModules from "../tranining/training_info";
 
 
-// Simple WelcomeModal component definition
-// type WelcomeModalProps = {
-//   onStartTour: () => void;
-//   onSkip: () => void;
-// };
-
-// const WelcomeModal: React.FC<WelcomeModalProps> = ({ onStartTour, onSkip }) => (
-//   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-//     <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-//       <h2 className="text-2xl font-bold mb-4">Welcome!</h2>
-//       <p className="mb-6">Would you like a quick tour of the dashboard?</p>
-//       <div className="flex justify-center gap-4">
-//         <button
-//           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-//           onClick={onStartTour}
-//         >
-//           Start Tour
-//         </button>
-//         <button
-//           className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-//           onClick={onSkip}
-//         >
-//           Skip
-//         </button>
-//       </div>
-//     </div>
-//   </div>
-// );
+function isAdminDashboardRole(role: string | null) {
+  if (!role) return false;
+  const r = String(role).toLowerCase().replace(/\s+/g, "_");
+  return r === "admin" || r === "super_admin";
+}
 
 const Render_layout: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [token,] = useState<string | null>(() => {
-    const storedToken = localStorage.getItem("token");
-    return storedToken ? storedToken : null;
-  });
+  const token = localStorage.getItem("token");
   const [tokenData, setTokenData] = useState<any | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -133,12 +110,12 @@ const Render_layout: React.FC = () => {
           return <CenterLoader />;
         }
 
-        return currentUserRole === "Admin"
+        return isAdminDashboardRole(currentUserRole)
           ? <AdminDashboard />
           : <Dashboard />;
 
       case "training":
-        return <Navigate to="/training" replace />;
+        return <TrainingModules />;
 
       case "settings":
         return <h2 className="text-xl">⚙️ Settings Content</h2>;
@@ -152,20 +129,30 @@ const Render_layout: React.FC = () => {
       case "add-quiz":
         return <ManageAssessments />;
 
-      case "view-progress":
-        if (!currentUserRole) {
-          return <CenterLoader />;
-        }
+      // case "view-progress":
+      //   if (!currentUserRole) {
+      //     return <CenterLoader />;
+      //   }
 
-        if (currentUserRole === "Admin") {
-          return (
-            <AdminProgressPage
-              onBackClick={() => navigate("", { replace: true })}
-            />
-          );
-        }
+      //   if (isAdminDashboardRole(currentUserRole)) {
+      //     return (
+      //       <AdminProgressPage
+      //         onBackClick={() => navigate("", { replace: true })}
+      //       />
+      //     );
+      //   }
 
-        return <Navigate to="/user/view-progress" replace />;
+      //   return <Navigate to="/user/view-progress" replace />;
+
+      case "View Progress":
+        return <IndividualViewProgress onBackClick={() => navigate("", { replace: true })} />;
+
+      case "Admin View Progress":
+        return <AdminProgressPage onBackClick={() => navigate("", { replace: true })} />;
+      case "Add User":
+        return <AddUser />;
+      case "help":
+        return <Help />;
 
       default:
         return <Dashboard />;
@@ -225,14 +212,140 @@ const Render_layout: React.FC = () => {
   }, [tokenData]);
 
 
-  const logout = () => {
+  // LOGOUT FUNCTION - Clears tokens, resets state, and redirects to login
+
+  const hasLoggedOut = useRef(false);
+  const logout = (message?: any, status?: any) => {
+    if (hasLoggedOut.current) return; // 🚫 prevent duplicate calls
+    hasLoggedOut.current = true;
+
+    // 👉 show toast only once
+    if (message && status === "success") {
+      ToastHelper.success(message);
+    } else if (message && status === "error") {
+      ToastHelper.error(message);
+    }
+
     localStorage.removeItem("token");
     localStorage.removeItem("tokenData");
     setTokenData(null);
     setCurrentUserRole(null);
+
     navigate("/login", { replace: true });
   };
 
+
+  // useEffect(() => {
+  //   if (!token) {
+  //     logout();
+  //     return;
+  //   }
+
+  //   if (isTokenExpired(token)) {
+  //     logout();
+  //     return;
+  //   }
+  // }, [token]);
+
+  // useEffect(() => {
+  //   if (!token) return;
+
+  //   try {
+  //     const payload = JSON.parse(atob(token.split(".")[1]));
+  //     const expiryTime = payload.exp * 1000;
+  //     const timeout = expiryTime - Date.now();
+
+  //     if (timeout <= 0) {
+  //       logout();
+  //       return;
+  //     }
+
+  //     const timer = setTimeout(() => {
+  //       logout();
+  //     }, timeout);
+
+  //     return () => clearTimeout(timer);
+  //   } catch {
+  //     logout();
+  //   }
+  // }, [token]);
+
+  // useEffect(() => {
+  //   if (!token) {
+  //     logout("Session expired. Please login again.", "error");
+  //     return;
+  //   }
+
+  //   if (isTokenExpired(token)) {
+  //     logout("Session expired. Please login again.", "error");
+  //     return;
+  //   }
+  // }, [token]);
+
+  // useEffect(() => {
+  //   if (!token) return;
+
+  //   try {
+  //     const payload = JSON.parse(atob(token.split(".")[1]));
+  //     const expiryTime = payload.exp * 1000;
+  //     const timeout = expiryTime - Date.now();
+
+  //     if (timeout <= 0) {
+  //       logout("Session expired. Please login again.", "error");
+  //       return;
+  //     }
+
+  //     const timer = setTimeout(() => {
+  //       logout("Session expired. Please login again.", "error");
+  //     }, timeout);
+
+  //     return () => clearTimeout(timer);
+  //   } catch {
+  //     logout("Invalid session. Please login again.", "error");
+  //   }
+  // }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    try {
+      // ✅ 1. Immediate expiry check (reuse your function)
+      if (isTokenExpired(token)) {
+        logout("Session expired. Please login again.", "error");
+        return;
+      }
+
+      // ✅ 2. Decode once for timer
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const expiryTime = payload.exp * 1000;
+      const currentTime = Date.now();
+
+      const timeout = expiryTime - currentTime;
+
+      const timer = setTimeout(() => {
+        logout("Session expired. Please login again.", "error");
+      }, timeout);
+
+      return () => clearTimeout(timer);
+
+    } catch {
+      logout("Invalid session. Please login again.", "error");
+    }
+  }, [token]);
+
+
+
+
+  const isTokenExpired = (token: string | null) => {
+    if (!token) return true;
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.exp * 1000 < Date.now(); // cleaner
+    } catch {
+      return true;
+    }
+  };
 
   return (
     <>
@@ -284,9 +397,8 @@ const Render_layout: React.FC = () => {
           {/* Header */}
           <DashboardHeader
             activeTab={activeTab}
-            onLogout={logout}
+            onLogout={() => logout("You have been logged out successfully.", "success")}
           />
-
           {/* Page Content */}
           <main className="flex-1 p-4">{renderContent()}</main>
         </div>

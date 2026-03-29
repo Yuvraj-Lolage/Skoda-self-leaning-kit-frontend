@@ -76,7 +76,7 @@ const SubmoduleManager = () => {
       {/* Main Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         
-        <SubmoduleList submodules={submodules} />
+        <SubmoduleList submodules={submodules} fetchSubmodules={fetchSubmodules} moduleId={selectedModule!} />
 
         <SubmoduleForm
           moduleId={selectedModule!}

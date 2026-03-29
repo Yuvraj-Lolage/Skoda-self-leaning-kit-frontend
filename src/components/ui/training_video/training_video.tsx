@@ -5,9 +5,13 @@ import { useParams } from "react-router-dom";
 
 interface TrainingVideoProps {
   video_url: string;
+  /** Called after backend marks submodule complete (e.g. refresh catalog sidebar) */
+  onComplete?: () => void;
 }
 
-export default function TrainingVideo({ video_url }: TrainingVideoProps) {
+const DEFAULT_TRACK_ID = 1;
+
+export default function TrainingVideo({ video_url, onComplete }: TrainingVideoProps) {
   const hasCompletedRef = useRef(false);
 
   const { module_id, sub_id } = useParams<{ module_id?: string; sub_id?: string }>();
@@ -33,11 +37,12 @@ export default function TrainingVideo({ video_url }: TrainingVideoProps) {
     const data = {
       moduleId: Number(module_id),
       submoduleId: Number(sub_id),
+      trackId: DEFAULT_TRACK_ID,
     };
 
     try {
       await axiosInstance.post(
-        "/user-progress/complete-submodule",
+        "/learning-progress/complete-submodule",
         data,
         {
           headers: {
@@ -45,6 +50,8 @@ export default function TrainingVideo({ video_url }: TrainingVideoProps) {
           },
         }
       );
+
+      onComplete?.();
 
       ToastHelper.success(
         "Congratulations! You've completed the training video."

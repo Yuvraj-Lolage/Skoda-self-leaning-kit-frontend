@@ -217,6 +217,7 @@ const Assessment: React.FC<QuizPageProps> = ({ onQuizComplete }) => {
       score,
       duration: totalTimeTaken,
       xpEarned: totalXP,
+      trackId: 1,
     };
 
     try {

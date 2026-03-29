@@ -8,6 +8,7 @@ import TrainingWord from "./training_word";
 
 type ContentType =
   | "Videos"
+  | "Video"
   | "presentation"
   | "pdf"
   | "excel"
@@ -27,21 +28,36 @@ type ContentType =
     duration: string;
     created_at: string;
 }
-const ContentRenderer = ({ submoduleData }: { submoduleData: SubmoduleData }) => {
+const ContentRenderer = ({
+  submoduleData,
+  onProgressUpdated,
+}: {
+  submoduleData: SubmoduleData;
+  onProgressUpdated?: () => void;
+}) => {
+  useEffect(() => {
+    console.log("Rendering content for type:", submoduleData.content_type);
+  });
 
-
-
-    useEffect(()=>{
-        console.log("Rendering content for type:", submoduleData.content_type);
-    })
-  const type = submoduleData.content_type as ContentType;
+  const rawType = (submoduleData.content_type || "").trim();
+  const type = (
+    rawType.toLowerCase() === "video" ? "Videos" : rawType
+  ) as ContentType;
 
   const url = submoduleData.content_url;
 
   const COMPONENT_MAP: Record<ContentType, ReactElement> = {
-    Videos: <TrainingVideo video_url={url} />,
+    Videos: <TrainingVideo video_url={url} onComplete={onProgressUpdated} />,
+    Video: <TrainingVideo video_url={url} onComplete={onProgressUpdated} />,
     presentation: <TrainingIframe url={url} />,
-    pdf: <TrainingPdf pdf_url={url} />,
+    pdf: (
+      <TrainingPdf
+        pdf_url={url}
+        module_id={parseInt(submoduleData.module_id, 10)}
+        sub_id={parseInt(submoduleData.submodule_id, 10)}
+        onComplete={onProgressUpdated}
+      />
+    ),
     excel: <TrainingExcel file_url={url} />,
     word: <TrainingWord file_url={url} />,
     deeplink: <TrainingDeepLink url={url} />,
