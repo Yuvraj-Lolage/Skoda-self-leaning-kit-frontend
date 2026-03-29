@@ -19,7 +19,7 @@ export function LoginPage() {
         e.preventDefault();
         try {
             setLoading(true);
-            const response = await axiosInstance.post("/user/login", { email, password });
+            const response = await axiosInstance.post("/auth/login", { email, password });
 
             if (response.status === 200) {
                 localStorage.setItem("token", response.data);

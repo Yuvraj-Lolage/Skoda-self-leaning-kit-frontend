@@ -78,7 +78,7 @@ const AddUser: React.FC = () => {
         message?: string;
         emailSent?: boolean;
       }>(
-        "/user/super-admin/create",
+        "/auth/super-admin/create",
         {
           name,
           email: form.email.trim().toLowerCase(),
