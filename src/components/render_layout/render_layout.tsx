@@ -8,7 +8,7 @@ import { getTokenData } from "../../helper/auth_token";
 import WelcomeScreen from "../ui/welcome_screen/welcome_screen";
 import ModuleManager from "../super_admin/add_module/module_manager";
 import SubmoduleManager from "../super_admin/add_submodule/submodule_manager";
-import { useNavigate, useLocation, Navigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AdminProgressPage } from "../super_admin/view_progress/admin_progress";
 import AdminDashboard from "../super_admin/admin_dashboard/admin_dashboard";
 import axiosInstance from "../../API/axios_instance";

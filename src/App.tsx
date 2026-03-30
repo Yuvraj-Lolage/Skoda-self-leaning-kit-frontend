@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import { Toaster } from "react-hot-toast";
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
@@ -23,10 +23,14 @@ import Help from './components/Help/help';
 
 function App() {
   const navigate = useNavigate();
+  // keep navigate referenced to avoid "declared but its value is never read" while header logout relies on it
+  useEffect(() => { void navigate; }, [navigate]);
+
   const [token, setToken] = useState(() => {
     const storedToken = localStorage.getItem("token");
     return storedToken || null;
   });
+
   return (
     <>
       <TourProvider>

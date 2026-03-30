@@ -4,7 +4,7 @@ import axiosInstance from "../../API/axios_instance";
 import { ToastHelper } from "../ui/toast_helper/toast";
 import { Helmet } from "react-helmet";
 import login_vdo from '../../assets/login_vdo.mp4';
-import { Link, useNavigate } from "react-router-dom";
+import {useNavigate } from "react-router-dom";
 
 
 export function LoginPage() {
@@ -30,7 +30,7 @@ export function LoginPage() {
 
                 setTimeout(() => {
                     window.location.reload();
-                }, 1000);
+                }, 500);
             } else {
                 ToastHelper.error("Something went wrong, please try again.");
                 console.error("something went wrong");

@@ -426,7 +426,7 @@ export function Submodule({ }: CoursePlayerPageProps) {
                                                 </p>
                                             </div>
                                         </div>
-                                        {(submodule.assessments ?? []).map((assessment) => {
+                                        {(submodule.assessments ?? []).map((assessment:any) => {
                                             const aActive = assessment.status === "in_progress";
                                             return (
                                                 <div
